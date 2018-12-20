@@ -30,7 +30,6 @@ import com.google.cloud.datastore.StructuredQuery;
 import com.google.cloud.datastore.StructuredQuery.CompositeFilter;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
-import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -528,7 +527,7 @@ public class PartTreeDatastoreQueryTests {
 					: results;
 		});
 		when(this.datastoreTemplate.convertEntitiesForRead(any(), any())).then(
-				invocation -> Lists.newArrayList(invocation.<Iterator>getArgument(0))
+				invocation -> Collections.singleton(invocation.<Iterator>getArgument(0))
 		);
 	}
 

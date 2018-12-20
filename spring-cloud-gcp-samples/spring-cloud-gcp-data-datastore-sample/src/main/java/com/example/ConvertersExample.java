@@ -18,9 +18,10 @@ package com.example;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-
-import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
 
@@ -28,13 +29,13 @@ import org.springframework.core.convert.converter.Converter;
  * @author Dmitry Solomakha
  */
 public class ConvertersExample {
-	//Converter to read ImmutableSet
-	//Note that you don't need a ImmutableSet to List converter
-	static final Converter<List<?>, ImmutableSet<?>> LIST_IMMUTABLE_SET_CONVERTER =
-			new Converter<List<?>, ImmutableSet<?>>() {
+	//Converter to read Set
+	//Note that you don't need a Set to List converter
+	static final Converter<List<?>, Set<?>> LIST_SET_CONVERTER =
+			new Converter<List<?>, Set<?>>() {
 				@Override
-				public ImmutableSet<?> convert(List<?> source) {
-					return ImmutableSet.copyOf(source);
+				public Set<?> convert(List<?> source) {
+					return Collections.unmodifiableSet(new HashSet<>(source));
 				}
 			};
 

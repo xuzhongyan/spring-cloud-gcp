@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.gcp.security.iap;
 
-import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -58,7 +59,8 @@ public class AudienceValidatorTests {
 	@Test
 	public void testCorrectAudienceMatches() {
 		Jwt mockJwt = Mockito.mock(Jwt.class);
-		when(mockJwt.getAudience()).thenReturn(ImmutableList.of("cats"));
+
+		when(mockJwt.getAudience()).thenReturn(Arrays.asList("cats"));
 
 		this.contextRunner.run(context -> {
 			AudienceValidator validator = context.getBean(AudienceValidator.class);
@@ -69,7 +71,7 @@ public class AudienceValidatorTests {
 	@Test
 	public void testWrongAudienceDoesNotMatch() {
 		Jwt mockJwt = Mockito.mock(Jwt.class);
-		when(mockJwt.getAudience()).thenReturn(ImmutableList.of("dogs"));
+		when(mockJwt.getAudience()).thenReturn(Arrays.asList("dogs"));
 
 		this.contextRunner.run(context -> {
 			AudienceValidator validator = context.getBean(AudienceValidator.class);

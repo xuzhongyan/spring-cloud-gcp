@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.gcp.pubsub.integration.outbound;
 
+import java.util.HashMap;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,7 +66,10 @@ public class PubSubMessageHandlerTests {
 	@Before
 	public void setUp() {
 		this.message = new GenericMessage<byte[]>("testPayload".getBytes(),
-				ImmutableMap.of("key1", "value1", "key2", "value2"));
+				new HashMap<String, Object>() {{
+					put("key1", "value1");
+					put("key2", "value2");
+				}});
 		SettableListenableFuture<String> future = new SettableListenableFuture<>();
 		future.set("benfica");
 		when(this.pubSubTemplate.publish(eq("testTopic"),
@@ -86,8 +89,12 @@ public class PubSubMessageHandlerTests {
 	@Test
 	public void testPublishDynamicTopic() {
 		Message<?> dynamicMessage = new GenericMessage<byte[]>("testPayload".getBytes(),
-						ImmutableMap.of("key1", "value1", "key2", "value2",
-								GcpPubSubHeaders.TOPIC, "dynamicTopic"));
+				new HashMap<String, Object>() {
+					{
+						put("key1", "value1");
+						put("key2", "value2");
+						put(GcpPubSubHeaders.TOPIC, "dynamicTopic");
+					}});
 		this.adapter.handleMessage(dynamicMessage);
 		verify(this.pubSubTemplate, times(1))
 			.publish(eq("dynamicTopic"),	eq("testPayload".getBytes()), isA(Map.class));

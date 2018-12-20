@@ -16,9 +16,8 @@
 
 package com.example;
 
+import java.util.Collections;
 import java.util.List;
-
-import com.google.common.collect.Lists;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -50,7 +49,7 @@ public class DatastoreBookshelfExample {
 	@ShellMethod("Loads all books")
 	public String findAllBooks() {
 		Iterable<Book> books = this.bookRepository.findAll();
-		return Lists.newArrayList(books).toString();
+		return Collections.singleton(books).toString();
 	}
 
 	@ShellMethod("Loads books by author: find-by-author <author>")

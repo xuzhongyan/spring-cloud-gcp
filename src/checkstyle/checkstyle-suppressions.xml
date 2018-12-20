@@ -4,4 +4,6 @@
         "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
     <suppress files="[\\/]spring-cloud-gcp-samples[\\/]" checks="HideUtilityClassConstructorCheck" />
+    <!-- To be resolved with https://github.com/spring-cloud/spring-cloud-gcp/issues/1063 -->
+    <suppress files="PubSubSubscriberTemplate.java" checks="IllegalImport" />
 </suppressions>

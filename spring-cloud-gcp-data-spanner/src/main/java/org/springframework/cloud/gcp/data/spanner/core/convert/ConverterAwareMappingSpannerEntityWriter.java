@@ -17,6 +17,9 @@
 package org.springframework.cloud.gcp.data.spanner.core.convert;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -31,8 +34,6 @@ import com.google.cloud.spanner.Key;
 import com.google.cloud.spanner.Mutation.WriteBuilder;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.ValueBinder;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import org.springframework.cloud.gcp.data.spanner.core.mapping.SpannerDataException;
 import org.springframework.cloud.gcp.data.spanner.core.mapping.SpannerMappingContext;
@@ -42,8 +43,8 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.util.Assert;
 
 /**
- * The primary class for adding values from entity objects to {@link WriteBuilder} for
- * the purpose of creating mutations for Spanner.
+ * The primary class for adding values from entity objects to {@link WriteBuilder} for the
+ * purpose of creating mutations for Spanner.
  *
  * @author Chengyuan Zhao
  * @author Balint Pato
@@ -51,67 +52,43 @@ import org.springframework.util.Assert;
  * @since 1.1
  */
 public class ConverterAwareMappingSpannerEntityWriter implements SpannerEntityWriter {
-	private static final Set<Class> SPANNER_KEY_COMPATIBLE_TYPES = ImmutableSet
-			.<Class>builder()
-			.add(Boolean.class)
-			.add(Integer.class)
-			.add(Long.class)
-			.add(Float.class)
-			.add(Double.class)
-			.add(String.class)
-			.add(ByteArray.class)
-			.add(Timestamp.class)
-			.add(com.google.cloud.Date.class)
-			.build();
+	private static final Set<Class> SPANNER_KEY_COMPATIBLE_TYPES = Collections.unmodifiableSet(
+			new HashSet<Class>(
+					Arrays.asList(
+							Boolean.class, Integer.class, Long.class, Float.class, Double.class, String.class,
+							ByteArray.class, Timestamp.class, com.google.cloud.Date.class)));
 
-	public static final Map<Class<?>, BiFunction<ValueBinder, ?, ?>> singleItemTypeValueBinderMethodMap;
+	public static final Map<Class<?>, BiFunction<ValueBinder, ?, ?>> singleItemTypeValueBinderMethodMap = Collections
+			.unmodifiableMap(new HashMap<Class<?>, BiFunction<ValueBinder, ?, ?>>() {
+				{
+					put(Date.class, (BiFunction<ValueBinder, Date, ?>) ValueBinder::to);
+					put(Boolean.class, (BiFunction<ValueBinder, Boolean, ?>) ValueBinder::to);
+					put(Long.class, (BiFunction<ValueBinder, Long, ?>) ValueBinder::to);
+					put(long.class, (BiFunction<ValueBinder, Long, ?>) ValueBinder::to);
+					put(Double.class, (BiFunction<ValueBinder, Double, ?>) ValueBinder::to);
+					put(double.class, (BiFunction<ValueBinder, Double, ?>) ValueBinder::to);
+					put(String.class, (BiFunction<ValueBinder, String, ?>) ValueBinder::to);
+					put(Timestamp.class, (BiFunction<ValueBinder, Timestamp, ?>) ValueBinder::to);
+					put(ByteArray.class, (BiFunction<ValueBinder, ByteArray, ?>) ValueBinder::to);
+					put(double[].class, (BiFunction<ValueBinder, double[], ?>) ValueBinder::toFloat64Array);
+					put(boolean[].class, (BiFunction<ValueBinder, boolean[], ?>) ValueBinder::toBoolArray);
+					put(long[].class, (BiFunction<ValueBinder, long[], ?>) ValueBinder::toInt64Array);
+					put(Struct.class, (BiFunction<ValueBinder, Struct, ?>) ValueBinder::to);
+				}
+			});
 
-	static final Map<Class<?>, BiConsumer<ValueBinder<?>, Iterable>>
-			iterablePropertyType2ToMethodMap = createIterableTypeMapping();
-
-	@SuppressWarnings("unchecked")
-	private static Map<Class<?>, BiConsumer<ValueBinder<?>, Iterable>> createIterableTypeMapping() {
-		// Java 8 has compile errors when using the builder extension methods
-		// @formatter:off
-		ImmutableMap.Builder<Class<?>, BiConsumer<ValueBinder<?>, Iterable>> builder =
-						new ImmutableMap.Builder<>();
-		// @formatter:on
-
-		builder.put(com.google.cloud.Date.class, ValueBinder::toDateArray);
-		builder.put(Boolean.class, ValueBinder::toBoolArray);
-		builder.put(Long.class, ValueBinder::toInt64Array);
-		builder.put(String.class, ValueBinder::toStringArray);
-		builder.put(Double.class, ValueBinder::toFloat64Array);
-		builder.put(Timestamp.class, ValueBinder::toTimestampArray);
-		builder.put(ByteArray.class, ValueBinder::toBytesArray);
-
-		return builder.build();
-	}
-
-	static {
-		ImmutableMap.Builder<Class<?>, BiFunction<ValueBinder, ?, ?>> builder = new ImmutableMap.Builder<>();
-
-		builder.put(Date.class, (BiFunction<ValueBinder, Date, ?>) ValueBinder::to);
-		builder.put(Boolean.class, (BiFunction<ValueBinder, Boolean, ?>) ValueBinder::to);
-		builder.put(Long.class, (BiFunction<ValueBinder, Long, ?>) ValueBinder::to);
-		builder.put(long.class, (BiFunction<ValueBinder, Long, ?>) ValueBinder::to);
-		builder.put(Double.class, (BiFunction<ValueBinder, Double, ?>) ValueBinder::to);
-		builder.put(double.class, (BiFunction<ValueBinder, Double, ?>) ValueBinder::to);
-		builder.put(String.class, (BiFunction<ValueBinder, String, ?>) ValueBinder::to);
-		builder.put(Timestamp.class,
-				(BiFunction<ValueBinder, Timestamp, ?>) ValueBinder::to);
-		builder.put(ByteArray.class,
-				(BiFunction<ValueBinder, ByteArray, ?>) ValueBinder::to);
-		builder.put(double[].class,
-				(BiFunction<ValueBinder, double[], ?>) ValueBinder::toFloat64Array);
-		builder.put(boolean[].class,
-				(BiFunction<ValueBinder, boolean[], ?>) ValueBinder::toBoolArray);
-		builder.put(long[].class,
-				(BiFunction<ValueBinder, long[], ?>) ValueBinder::toInt64Array);
-		builder.put(Struct.class, (BiFunction<ValueBinder, Struct, ?>) ValueBinder::to);
-
-		singleItemTypeValueBinderMethodMap = builder.build();
-	}
+	static final Map<Class<?>, BiConsumer<ValueBinder<?>, Iterable>> iterablePropertyType2ToMethodMap = Collections
+			.unmodifiableMap(new HashMap<Class<?>, BiConsumer<ValueBinder<?>, Iterable>>() {
+				{
+					put(com.google.cloud.Date.class, ValueBinder::toDateArray);
+					put(Boolean.class, ValueBinder::toBoolArray);
+					put(Long.class, ValueBinder::toInt64Array);
+					put(String.class, ValueBinder::toStringArray);
+					put(Double.class, ValueBinder::toFloat64Array);
+					put(Timestamp.class, ValueBinder::toTimestampArray);
+					put(ByteArray.class, ValueBinder::toBytesArray);
+				}
+			});
 
 	private final SpannerMappingContext spannerMappingContext;
 
@@ -162,7 +139,7 @@ public class ConverterAwareMappingSpannerEntityWriter implements SpannerEntityWr
 						}
 					}
 					else if (writeAllColumns || includeColumns
-								.contains(spannerPersistentProperty.getColumnName())) {
+							.contains(spannerPersistentProperty.getColumnName())) {
 						writeProperty(sink, accessor, spannerPersistentProperty);
 					}
 				});
@@ -365,8 +342,8 @@ public class ConverterAwareMappingSpannerEntityWriter implements SpannerEntityWr
 			return false;
 		}
 		Class innerType = ConversionUtils.boxIfNeeded(targetType);
-		BiFunction<ValueBinder, T, ?> toMethod = (BiFunction<ValueBinder, T, ?>)
-		singleItemTypeValueBinderMethodMap.get(innerType);
+		BiFunction<ValueBinder, T, ?> toMethod = (BiFunction<ValueBinder, T, ?>) singleItemTypeValueBinderMethodMap
+				.get(innerType);
 		if (toMethod == null) {
 			return false;
 		}

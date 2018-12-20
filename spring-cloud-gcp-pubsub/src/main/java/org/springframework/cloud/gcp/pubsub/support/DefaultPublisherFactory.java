@@ -27,7 +27,6 @@ import com.google.api.gax.retrying.RetrySettings;
 import com.google.api.gax.rpc.HeaderProvider;
 import com.google.api.gax.rpc.TransportChannelProvider;
 import com.google.cloud.pubsub.v1.Publisher;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.pubsub.v1.ProjectTopicName;
 
 import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
@@ -159,7 +158,6 @@ public class DefaultPublisherFactory implements PublisherFactory {
 		});
 	}
 
-	@VisibleForTesting
 	Map<String, Publisher> getCache() {
 		return this.publishers;
 	}

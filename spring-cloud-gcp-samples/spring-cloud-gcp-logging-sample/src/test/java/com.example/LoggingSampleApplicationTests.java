@@ -17,6 +17,7 @@
 package com.example;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -26,7 +27,6 @@ import com.google.cloud.logging.LogEntry;
 import com.google.cloud.logging.Logging;
 import com.google.cloud.logging.LoggingOptions;
 import com.google.cloud.logging.Payload.StringPayload;
-import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -97,7 +97,10 @@ public class LoggingSampleApplicationTests {
 				.untilAsserted(() -> {
 					Page<LogEntry> logEntryPage = this.logClient.listLogEntries(
 							Logging.EntryListOption.filter(logFilter));
-					ImmutableList<LogEntry> logEntries = ImmutableList.copyOf(logEntryPage.iterateAll());
+					List<LogEntry> logEntries = new ArrayList<>();
+					logEntryPage.iterateAll().forEach((le) -> {
+						logEntries.add(le);
+					});
 
 					List<String> logContents = logEntries.stream()
 							.map(logEntry -> ((StringPayload) logEntry.getPayload()).getData())

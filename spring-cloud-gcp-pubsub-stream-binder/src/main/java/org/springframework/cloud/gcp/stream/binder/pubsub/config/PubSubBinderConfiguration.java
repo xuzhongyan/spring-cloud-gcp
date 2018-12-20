@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.gcp.stream.binder.pubsub.config;
 
-import com.google.common.collect.ImmutableMap;
+
+import java.util.Collections;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -57,7 +58,7 @@ public class PubSubBinderConfiguration {
 
 	@Bean
 	public MappingsProvider pubSubExtendedPropertiesDefaultMappingsProvider() {
-		return () -> ImmutableMap.of(
+		return () -> Collections.singletonMap(
 				ConfigurationPropertyName.of("spring.cloud.stream.gcp.pubsub.bindings"),
 				ConfigurationPropertyName.of("spring.cloud.stream.gcp.pubsub.default"));
 	}

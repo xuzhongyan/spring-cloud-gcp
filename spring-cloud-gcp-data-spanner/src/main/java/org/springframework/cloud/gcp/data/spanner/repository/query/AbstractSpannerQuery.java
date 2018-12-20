@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.common.annotations.VisibleForTesting;
 
 import org.springframework.cloud.gcp.data.spanner.core.SpannerTemplate;
 import org.springframework.cloud.gcp.data.spanner.core.mapping.SpannerMappingContext;
@@ -72,8 +71,7 @@ abstract class AbstractSpannerQuery<T> implements RepositoryQuery {
 				: this.queryMethod.getResultProcessor().processResult(results.get(0));
 	}
 
-	@VisibleForTesting
-	Object convertToSimpleReturnType(List results, Class simpleConvertedType) {
+		Object convertToSimpleReturnType(List results, Class simpleConvertedType) {
 		return this.queryMethod.isCollectionQuery()
 				? results.stream()
 						.map(x -> this.spannerTemplate.getSpannerEntityProcessor()
@@ -83,8 +81,7 @@ abstract class AbstractSpannerQuery<T> implements RepositoryQuery {
 						.convert(results.get(0), simpleConvertedType);
 	}
 
-	@VisibleForTesting
-	Class getReturnedSimpleConvertableItemType() {
+		Class getReturnedSimpleConvertableItemType() {
 		Class itemType = this.queryMethod.isCollectionQuery()
 				? this.queryMethod.getResultProcessor().getReturnedType()
 						.getReturnedType()
@@ -98,8 +95,7 @@ abstract class AbstractSpannerQuery<T> implements RepositoryQuery {
 				.getCorrespondingSpannerJavaType(itemType, false);
 	}
 
-	@VisibleForTesting
-	Object processRawObjectForProjection(Object object) {
+		Object processRawObjectForProjection(Object object) {
 		return this.queryMethod.getResultProcessor().processResult(object);
 	}
 

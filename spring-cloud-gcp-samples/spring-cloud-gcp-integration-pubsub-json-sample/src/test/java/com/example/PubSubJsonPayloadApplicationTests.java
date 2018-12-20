@@ -16,9 +16,10 @@
 
 package com.example;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import org.awaitility.Duration;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,9 +56,11 @@ public class PubSubJsonPayloadApplicationTests {
 
 	@Test
 	public void testReceivesJsonPayload() {
-		ImmutableMap<String, String> params = ImmutableMap.of(
-				"name", "Bob",
-				"age", "25");
+		Map<String, String> params = new HashMap<String, String>() {
+			{
+				put("name", "Bob");
+				put("age", "25");
+			}};
 		this.testRestTemplate.postForObject(
 				"/createPerson?name={name}&age={age}", null, String.class, params);
 

@@ -17,6 +17,7 @@
 package com.example;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -27,7 +28,6 @@ import com.google.cloud.pubsub.v1.SubscriptionAdminClient;
 import com.google.cloud.pubsub.v1.SubscriptionAdminClient.ListSubscriptionsPagedResponse;
 import com.google.cloud.pubsub.v1.TopicAdminClient;
 import com.google.cloud.pubsub.v1.TopicAdminClient.ListTopicsPagedResponse;
-import com.google.common.collect.ImmutableList;
 import com.google.pubsub.v1.ProjectName;
 import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.ProjectTopicName;
@@ -125,7 +125,7 @@ public class PubSubApplicationTests {
 	@AfterClass
 	public static void cleanupPubsubClients() {
 		if (topicAdminClient != null) {
-			List<String> testTopics = ImmutableList.of(
+			List<String> testTopics = Arrays.asList(
 					SAMPLE_TEST_TOPIC,
 					SAMPLE_TEST_TOPIC2,
 					SAMPLE_TEST_TOPIC_DELETE);
@@ -142,7 +142,7 @@ public class PubSubApplicationTests {
 		}
 
 		if (subscriptionAdminClient != null) {
-			List<String> testSubscriptions = ImmutableList.of(
+			List<String> testSubscriptions = Arrays.asList(
 					SAMPLE_TEST_SUBSCRIPTION1,
 					SAMPLE_TEST_SUBSCRIPTION2,
 					SAMPLE_TEST_SUBSCRIPTION3,

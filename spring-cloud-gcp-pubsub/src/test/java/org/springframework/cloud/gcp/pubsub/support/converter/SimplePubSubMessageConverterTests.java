@@ -21,7 +21,6 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import org.junit.Rule;
@@ -40,9 +39,11 @@ public class SimplePubSubMessageConverterTests {
 
 	private final static String TEST_STRING = "test";
 
-	private final static Map<String, String> TEST_HEADERS = ImmutableMap.of(
-			"key1", "value1",
-			"key2", "value2");
+	private final static Map<String, String> TEST_HEADERS = new HashMap<String, String>() {{
+		put("key1", "value1");
+		put("key2", "value2");
+
+	}};
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
