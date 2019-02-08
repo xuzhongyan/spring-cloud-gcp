@@ -36,21 +36,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultSubscriberFactoryTests {
 
-	@Mock
-	private CredentialsProvider credentialsProvider;
-
 	/**
 	 * used to check exception messages and types.
 	 */
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
 
+	@Mock
+	private CredentialsProvider credentialsProvider;
+
 	@Test
 	public void testNewSubscriber() {
-		DefaultSubscriberFactory factory = new DefaultSubscriberFactory(() -> "angeldust");
+		DefaultSubscriberFactory factory = new DefaultSubscriberFactory(
+				() -> "angeldust");
 		factory.setCredentialsProvider(this.credentialsProvider);
 
-		Subscriber subscriber = factory.createSubscriber("midnight cowboy", (message, consumer) -> { });
+		Subscriber subscriber = factory.createSubscriber("midnight cowboy",
+				(message, consumer) -> {
+				});
 
 		assertThat(subscriber.getSubscriptionNameString())
 				.isEqualTo("projects/angeldust/subscriptions/midnight cowboy");

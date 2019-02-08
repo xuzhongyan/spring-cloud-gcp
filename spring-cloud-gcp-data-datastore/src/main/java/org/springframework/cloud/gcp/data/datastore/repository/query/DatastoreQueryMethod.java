@@ -28,7 +28,6 @@ import org.springframework.lang.Nullable;
  * A metadata class for Query Methods for Spring Data Cloud Datastore.
  *
  * @author Chengyuan Zhao
- *
  * @since 1.1
  */
 public class DatastoreQueryMethod extends QueryMethod {
@@ -38,7 +37,6 @@ public class DatastoreQueryMethod extends QueryMethod {
 	/**
 	 * Creates a new {@link QueryMethod} from the given parameters. Looks up the correct
 	 * query to use for following invocations of the method given.
-	 *
 	 * @param method must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @param factory must not be {@literal null}.
@@ -51,7 +49,6 @@ public class DatastoreQueryMethod extends QueryMethod {
 
 	/**
 	 * Returns whether the method has an annotated query.
-	 *
 	 * @return true if this query method has annotation that holds the query string.
 	 */
 	boolean hasAnnotatedQuery() {
@@ -69,7 +66,6 @@ public class DatastoreQueryMethod extends QueryMethod {
 
 	/**
 	 * Return whether this method is an exists query.
-	 *
 	 * @return true if this query method is an exists query, and false otherwise.
 	 */
 	boolean isExistsQuery() {
@@ -79,7 +75,6 @@ public class DatastoreQueryMethod extends QueryMethod {
 
 	/**
 	 * Return whether this method is a count query.
-	 *
 	 * @return true if this query method is a count query, and false otherwise.
 	 */
 	boolean isCountQuery() {
@@ -90,11 +85,11 @@ public class DatastoreQueryMethod extends QueryMethod {
 	/**
 	 * Returns the {@link Query} annotation that is applied to the method or {@code null}
 	 * if none available.
-	 *
 	 * @return the query annotation that is applied.
 	 */
 	@Nullable
 	Query getQueryAnnotation() {
 		return AnnotatedElementUtils.findMergedAnnotation(this.method, Query.class);
 	}
+
 }

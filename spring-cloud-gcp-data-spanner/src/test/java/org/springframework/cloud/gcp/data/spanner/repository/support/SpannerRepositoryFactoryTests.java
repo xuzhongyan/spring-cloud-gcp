@@ -48,15 +48,15 @@ import static org.mockito.Mockito.mock;
  */
 public class SpannerRepositoryFactoryTests {
 
-	private SpannerRepositoryFactory spannerRepositoryFactory;
-
-	private SpannerTemplate spannerTemplate;
-
 	/**
 	 * used to check exception messages and types.
 	 */
 	@Rule
 	public ExpectedException expectedEx = ExpectedException.none();
+
+	private SpannerRepositoryFactory spannerRepositoryFactory;
+
+	private SpannerTemplate spannerTemplate;
 
 	@Before
 	public void setUp() {
@@ -83,9 +83,9 @@ public class SpannerRepositoryFactoryTests {
 	@Test
 	public void getEntityInformationNotAvailableTest() {
 		this.expectedEx.expect(MappingException.class);
-		this.expectedEx.expectMessage("Could not lookup mapping metadata for domain " +
-				"class org.springframework.cloud.gcp.data.spanner.repository.support." +
-				"SpannerRepositoryFactoryTests$TestEntity!");
+		this.expectedEx.expectMessage("Could not lookup mapping metadata for domain "
+				+ "class org.springframework.cloud.gcp.data.spanner.repository.support."
+				+ "SpannerRepositoryFactoryTests$TestEntity!");
 		SpannerRepositoryFactory factory = new SpannerRepositoryFactory(
 				mock(SpannerMappingContext.class), this.spannerTemplate);
 		factory.getEntityInformation(TestEntity.class);
@@ -112,12 +112,14 @@ public class SpannerRepositoryFactoryTests {
 	@Test
 	public void getQueryLookupStrategyTest() {
 		Optional<QueryLookupStrategy> qls = this.spannerRepositoryFactory
-				.getQueryLookupStrategy(null, mock(QueryMethodEvaluationContextProvider.class));
+				.getQueryLookupStrategy(null,
+						mock(QueryMethodEvaluationContextProvider.class));
 		assertThat(qls.get()).isInstanceOf(SpannerQueryLookupStrategy.class);
 	}
 
 	@Table(name = "custom_test_table")
 	private static class TestEntity {
+
 		@PrimaryKey(keyOrder = 1)
 		String id;
 
@@ -126,5 +128,7 @@ public class SpannerRepositoryFactoryTests {
 
 		@Column(name = "custom_col")
 		String something;
+
 	}
+
 }

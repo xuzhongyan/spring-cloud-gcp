@@ -30,10 +30,10 @@ import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
 /**
- * Base starter for Google Cloud Projects. Provides defaults for {@link com.google.auth.oauth2.GoogleCredentials}.
- * Binds properties from {@link GcpProperties}.
+ * Base starter for Google Cloud Projects. Provides defaults for
+ * {@link com.google.auth.oauth2.GoogleCredentials}. Binds properties from
+ * {@link GcpProperties}.
  *
  * @author Vinicius Carvalho
  * @author João André Martins
@@ -44,12 +44,26 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties(GcpProperties.class)
 public class GcpContextAutoConfiguration {
-	private static final Log LOGGER = LogFactory.getLog(GcpContextAutoConfiguration.class);
+
+	private static final Log LOGGER = LogFactory
+			.getLog(GcpContextAutoConfiguration.class);
 
 	private final GcpProperties gcpProperties;
 
 	public GcpContextAutoConfiguration(GcpProperties gcpProperties) {
 		this.gcpProperties = gcpProperties;
+	}
+
+	/**
+	 * Provides default implementation for determining GCP environment. Can be overridden
+	 * to avoid interacting with real environment.
+	 * @since 1.1
+	 * @return a GCP environment provider
+	 */
+	@Bean
+	@ConditionalOnMissingBean
+	public static GcpEnvironmentProvider gcpEnvironmentProvider() {
+		return new DefaultGcpEnvironmentProvider();
 	}
 
 	@Bean
@@ -60,15 +74,15 @@ public class GcpContextAutoConfiguration {
 
 	/**
 	 * Get a GCP project ID provider.
-	 * @return a {@link GcpProjectIdProvider} that returns the project ID in the properties or, if
-	 * none, the project ID from the GOOGLE_CLOUD_PROJECT envvar and Metadata Server
+	 * @return a {@link GcpProjectIdProvider} that returns the project ID in the
+	 * properties or, if none, the project ID from the GOOGLE_CLOUD_PROJECT envvar and
+	 * Metadata Server
 	 */
 	@Bean
 	@ConditionalOnMissingBean
 	public GcpProjectIdProvider gcpProjectIdProvider() {
-		GcpProjectIdProvider projectIdProvider =
-				(this.gcpProperties.getProjectId() != null)
-						? () -> this.gcpProperties.getProjectId()
+		GcpProjectIdProvider projectIdProvider = (this.gcpProperties
+				.getProjectId() != null) ? () -> this.gcpProperties.getProjectId()
 						: new DefaultGcpProjectIdProvider();
 
 		if (LOGGER.isInfoEnabled()) {
@@ -78,15 +92,4 @@ public class GcpContextAutoConfiguration {
 		return projectIdProvider;
 	}
 
-	/**
-	 * Provides default implementation for determining GCP environment.
-	 * Can be overridden to avoid interacting with real environment.
-	 * @since 1.1
-	 * @return a GCP environment provider
-	 */
-	@Bean
-	@ConditionalOnMissingBean
-	public static GcpEnvironmentProvider gcpEnvironmentProvider() {
-		return new DefaultGcpEnvironmentProvider();
-	}
 }

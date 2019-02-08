@@ -32,12 +32,15 @@ import org.springframework.cloud.gcp.core.CredentialsSupplier;
 @ConfigurationProperties("spring.cloud.gcp")
 public class GcpProperties implements CredentialsSupplier {
 
-	/** GCP project ID where services are running. */
-	private String projectId;
-
-	/** GCP OAuth2 credentials to authenticate and authorize calls to Google Cloud Client Libraries. */
+	/**
+	 * GCP OAuth2 credentials to authenticate and authorize calls to Google Cloud Client
+	 * Libraries.
+	 */
 	@NestedConfigurationProperty
 	private final Credentials credentials = new Credentials();
+
+	/** GCP project ID where services are running. */
+	private String projectId;
 
 	public String getProjectId() {
 		return this.projectId;

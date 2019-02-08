@@ -34,8 +34,8 @@ import org.springframework.util.StringUtils;
 
 /**
  * Metadata class for entities stored in Datastore.
- * @param <T> the type of the persistent entity
  *
+ * @param <T> the type of the persistent entity
  * @author Chengyuan Zhao
  * @since 1.1
  */
@@ -104,23 +104,23 @@ public class DatastorePersistentEntityImpl<T>
 	@Override
 	public void doWithColumnBackedProperties(
 			PropertyHandler<DatastorePersistentProperty> handler) {
-		doWithProperties(
-				(PropertyHandler<DatastorePersistentProperty>) (datastorePersistentProperty) -> {
-					if (datastorePersistentProperty.isColumnBacked()) {
-						handler.doWithPersistentProperty(datastorePersistentProperty);
-					}
-				});
+		doWithProperties((PropertyHandler<DatastorePersistentProperty>) (
+				datastorePersistentProperty) -> {
+			if (datastorePersistentProperty.isColumnBacked()) {
+				handler.doWithPersistentProperty(datastorePersistentProperty);
+			}
+		});
 	}
 
 	@Override
 	public void doWithDescendantProperties(
 			PropertyHandler<DatastorePersistentProperty> handler) {
-		doWithProperties(
-				(PropertyHandler<DatastorePersistentProperty>) (datastorePersistentProperty) -> {
-					if (datastorePersistentProperty.isDescendants()) {
-						handler.doWithPersistentProperty(datastorePersistentProperty);
-					}
-				});
+		doWithProperties((PropertyHandler<DatastorePersistentProperty>) (
+				datastorePersistentProperty) -> {
+			if (datastorePersistentProperty.isDescendants()) {
+				handler.doWithPersistentProperty(datastorePersistentProperty);
+			}
+		});
 	}
 
 	@Override
@@ -130,4 +130,5 @@ public class DatastorePersistentEntityImpl<T>
 		this.context.setBeanResolver(new BeanFactoryResolver(applicationContext));
 		this.context.setRootObject(applicationContext);
 	}
+
 }

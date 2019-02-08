@@ -18,7 +18,6 @@ package com.example.app
 
 import com.example.data.Person
 import com.example.data.PersonRepository
-import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -36,22 +35,22 @@ import org.springframework.web.servlet.view.RedirectView
 @RestController
 class Controller(val pubSubTemplate: PubSubTemplate, val personRepository: PersonRepository) {
 
-	val REGISTRATION_TOPIC = "registrations"
+    val REGISTRATION_TOPIC = "registrations"
 
-	@PostMapping("/registerPerson")
-	fun registerPerson(
-			@RequestParam("firstName") firstName: String,
-			@RequestParam("lastName") lastName: String,
-			@RequestParam("email") email: String): RedirectView {
+    @PostMapping("/registerPerson")
+    fun registerPerson(
+            @RequestParam("firstName") firstName: String,
+            @RequestParam("lastName") lastName: String,
+            @RequestParam("email") email: String): RedirectView {
 
-		pubSubTemplate.publish(REGISTRATION_TOPIC, Person(firstName, lastName, email))
-		return RedirectView("/")
-	}
+        pubSubTemplate.publish(REGISTRATION_TOPIC, Person(firstName, lastName, email))
+        return RedirectView("/")
+    }
 
-	@GetMapping("/registrants")
-	fun getRegistrants(): ModelAndView {
-		val personsList = personRepository.findAll().toList()
+    @GetMapping("/registrants")
+    fun getRegistrants(): ModelAndView {
+        val personsList = personRepository.findAll().toList()
 
-		return ModelAndView("registrants", mapOf("personsList" to personsList))
-	}
+        return ModelAndView("registrants", mapOf("personsList" to personsList))
+    }
 }

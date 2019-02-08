@@ -72,17 +72,21 @@ public class AppEngineAudienceProviderTests {
 		this.thrown.expect(IllegalArgumentException.class);
 		this.thrown.expectMessage("ResourceManager cannot be null.");
 
-		new AppEngineAudienceProvider(this.mockProjectIdProvider).setResourceManager(null);
+		new AppEngineAudienceProvider(this.mockProjectIdProvider)
+				.setResourceManager(null);
 	}
 
 	@Test
 	public void testAudienceFormatCorrect() {
-		when(this.mockResourceManager.get("steal-spaceship")).thenReturn(this.mockProject);
+		when(this.mockResourceManager.get("steal-spaceship"))
+				.thenReturn(this.mockProject);
 		when(this.mockProject.getProjectNumber()).thenReturn(42L);
 
-		AppEngineAudienceProvider provider = new AppEngineAudienceProvider(this.mockProjectIdProvider);
+		AppEngineAudienceProvider provider = new AppEngineAudienceProvider(
+				this.mockProjectIdProvider);
 		provider.setResourceManager(this.mockResourceManager);
 
 		assertThat(provider.getAudience()).isEqualTo("/projects/42/apps/steal-spaceship");
 	}
+
 }

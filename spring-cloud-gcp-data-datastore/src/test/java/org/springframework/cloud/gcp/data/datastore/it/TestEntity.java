@@ -90,13 +90,6 @@ public class TestEntity {
 		this.size = size;
 	}
 
-	/**
-	 * An enum that tests conversion and storage.
-	 */
-	enum Shape {
-		CIRCLE, SQUARE;
-	}
-
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -106,11 +99,11 @@ public class TestEntity {
 			return false;
 		}
 		TestEntity that = (TestEntity) o;
-		return Objects.equals(getId(), that.getId()) &&
-				Objects.equals(getColor(), that.getColor()) &&
-				Objects.equals(getSize(), that.getSize()) &&
-				getShape() == that.getShape() &&
-				Objects.equals(getBlobField(), that.getBlobField());
+		return Objects.equals(getId(), that.getId())
+				&& Objects.equals(getColor(), that.getColor())
+				&& Objects.equals(getSize(), that.getSize())
+				&& getShape() == that.getShape()
+				&& Objects.equals(getBlobField(), that.getBlobField());
 	}
 
 	@Override
@@ -120,12 +113,18 @@ public class TestEntity {
 
 	@Override
 	public String toString() {
-		return "TestEntity{" +
-				"id=" + this.id +
-				", color='" + this.color + '\'' +
-				", size=" + this.size +
-				", shape=" + this.shape +
-				", blobField=" + this.blobField +
-				'}';
+		return "TestEntity{" + "id=" + this.id + ", color='" + this.color + '\''
+				+ ", size=" + this.size + ", shape=" + this.shape + ", blobField="
+				+ this.blobField + '}';
 	}
+
+	/**
+	 * An enum that tests conversion and storage.
+	 */
+	enum Shape {
+
+		CIRCLE, SQUARE;
+
+	}
+
 }

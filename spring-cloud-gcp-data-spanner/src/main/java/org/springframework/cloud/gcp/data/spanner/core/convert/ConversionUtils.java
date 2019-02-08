@@ -27,7 +27,6 @@ import com.google.cloud.ByteArray;
  *
  * @author Balint Pato
  * @author Chengyuan Zhao
- *
  * @since 1.1
  */
 public final class ConversionUtils {
@@ -45,13 +44,15 @@ public final class ConversionUtils {
 	}
 
 	public static boolean isIterableNonByteArrayType(Class propType) {
-		return Iterable.class.isAssignableFrom(propType) && !ByteArray.class.isAssignableFrom(propType);
+		return Iterable.class.isAssignableFrom(propType)
+				&& !ByteArray.class.isAssignableFrom(propType);
 	}
 
-	static <T> Iterable<T> convertIterable(
-			Iterable<Object> source, Class<T> targetType, SpannerCustomConverter converter) {
+	static <T> Iterable<T> convertIterable(Iterable<Object> source, Class<T> targetType,
+			SpannerCustomConverter converter) {
 		List<T> result = new ArrayList<>();
 		source.forEach((item) -> result.add(converter.convert(item, targetType)));
 		return result;
 	}
+
 }

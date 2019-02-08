@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gcp.data.datastore.core.mapping;
 
-
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -32,7 +31,6 @@ import org.springframework.data.util.TypeInformation;
  * properties.
  *
  * @author Chengyuan Zhao
- *
  * @since 1.1
  */
 public class DatastoreMappingContext extends
@@ -77,4 +75,5 @@ public class DatastoreMappingContext extends
 		return new DatastorePersistentPropertyImpl(property, owner, simpleTypeHolder,
 				this.fieldNamingStrategy);
 	}
+
 }

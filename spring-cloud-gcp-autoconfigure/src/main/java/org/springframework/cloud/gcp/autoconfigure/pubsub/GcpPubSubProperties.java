@@ -45,6 +45,12 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 	private final Publisher publisher = new Publisher();
 
 	/**
+	 * Overrides the GCP OAuth2 credentials specified in the Core module.
+	 */
+	@NestedConfigurationProperty
+	private final Credentials credentials = new Credentials(GcpScope.PUBSUB.getUrl());
+
+	/**
 	 * Overrides the GCP project ID specified in the Core module.
 	 */
 	private String projectId;
@@ -54,12 +60,6 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 	 * client to connect against a running pub/sub emulator.
 	 */
 	private String emulatorHost;
-
-	/**
-	 * Overrides the GCP OAuth2 credentials specified in the Core module.
-	 */
-	@NestedConfigurationProperty
-	private final Credentials credentials = new Credentials(GcpScope.PUBSUB.getUrl());
 
 	public Subscriber getSubscriber() {
 		return this.subscriber;
@@ -99,11 +99,6 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 	public static class Publisher {
 
 		/**
-		 * Number of threads used by every publisher.
-		 */
-		private int executorThreads = 4;
-
-		/**
 		 * Retry properties.
 		 */
 		private final Retry retry = new Retry();
@@ -112,6 +107,11 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 		 * Batching properties.
 		 */
 		private final Batching batching = new Batching();
+
+		/**
+		 * Number of threads used by every publisher.
+		 */
+		private int executorThreads = 4;
 
 		public Batching getBatching() {
 			return this.batching;
@@ -128,12 +128,23 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 		public void setExecutorThreads(int executorThreads) {
 			this.executorThreads = executorThreads;
 		}
+
 	}
 
 	/**
 	 * Subscriber settings.
 	 */
 	public static class Subscriber {
+
+		/**
+		 * Retry settings for subscriber factory.
+		 */
+		private final Retry retry = new Retry();
+
+		/**
+		 * Flow control settings for subscriber factory.
+		 */
+		private final FlowControl flowControl = new FlowControl();
 
 		/**
 		 * Number of threads used by every subscriber.
@@ -159,16 +170,6 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 		 * The optional parallel pull count setting for the subscriber factory.
 		 */
 		private Integer parallelPullCount;
-
-		/**
-		 * Retry settings for subscriber factory.
-		 */
-		private final Retry retry = new Retry();
-
-		/**
-		 * Flow control settings for subscriber factory.
-		 */
-		private final FlowControl flowControl = new FlowControl();
 
 		public Retry getRetry() {
 			return this.retry;
@@ -214,7 +215,6 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 			this.executorThreads = executorThreads;
 		}
 
-
 		public int getMaxAcknowledgementThreads() {
 			return this.maxAcknowledgementThreads;
 		}
@@ -222,6 +222,7 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 		public void setMaxAcknowledgementThreads(int maxAcknowledgementThreads) {
 			this.maxAcknowledgementThreads = maxAcknowledgementThreads;
 		}
+
 	}
 
 	/**
@@ -230,35 +231,35 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 	public static class Retry {
 
 		/**
-		 * TotalTimeout has ultimate control over how long the logic should keep trying the remote call
-		 * until it gives up completely. The higher the total timeout, the more retries can be
-		 * attempted.
+		 * TotalTimeout has ultimate control over how long the logic should keep trying
+		 * the remote call until it gives up completely. The higher the total timeout, the
+		 * more retries can be attempted.
 		 */
 		private Long totalTimeoutSeconds;
 
 		/**
-		 * InitialRetryDelay controls the delay before the first retry. Subsequent retries will use this
-		 * value adjusted according to the RetryDelayMultiplier.
+		 * InitialRetryDelay controls the delay before the first retry. Subsequent retries
+		 * will use this value adjusted according to the RetryDelayMultiplier.
 		 */
 		private Long initialRetryDelaySeconds;
 
 		/**
-		 * RetryDelayMultiplier controls the change in retry delay. The retry delay of the previous call
-		 * is multiplied by the RetryDelayMultiplier to calculate the retry delay for the next call.
+		 * RetryDelayMultiplier controls the change in retry delay. The retry delay of the
+		 * previous call is multiplied by the RetryDelayMultiplier to calculate the retry
+		 * delay for the next call.
 		 */
 		private Double retryDelayMultiplier;
 
 		/**
-		 * MaxRetryDelay puts a limit on the value of the retry delay, so that the RetryDelayMultiplier
-		 * can't increase the retry delay higher than this amount.
+		 * MaxRetryDelay puts a limit on the value of the retry delay, so that the
+		 * RetryDelayMultiplier can't increase the retry delay higher than this amount.
 		 */
 		private Long maxRetryDelaySeconds;
 
 		/**
-		 * MaxAttempts defines the maximum number of attempts to perform.
-		 * If this value is greater than 0, and the number of attempts reaches this limit,
-		 * the logic will give up retrying even if the total retry time is still lower
-		 * than TotalTimeout.
+		 * MaxAttempts defines the maximum number of attempts to perform. If this value is
+		 * greater than 0, and the number of attempts reaches this limit, the logic will
+		 * give up retrying even if the total retry time is still lower than TotalTimeout.
 		 */
 		private Integer maxAttempts;
 
@@ -268,20 +269,21 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 		private Boolean jittered;
 
 		/**
-		 * InitialRpcTimeout controls the timeout for the initial RPC. Subsequent calls will use this
-		 * value adjusted according to the RpcTimeoutMultiplier.
+		 * InitialRpcTimeout controls the timeout for the initial RPC. Subsequent calls
+		 * will use this value adjusted according to the RpcTimeoutMultiplier.
 		 */
 		private Long initialRpcTimeoutSeconds;
 
 		/**
-		 * RpcTimeoutMultiplier controls the change in RPC timeout. The timeout of the previous call is
-		 * multiplied by the RpcTimeoutMultiplier to calculate the timeout for the next call.
+		 * RpcTimeoutMultiplier controls the change in RPC timeout. The timeout of the
+		 * previous call is multiplied by the RpcTimeoutMultiplier to calculate the
+		 * timeout for the next call.
 		 */
 		private Double rpcTimeoutMultiplier;
 
 		/**
-		 * MaxRpcTimeout puts a limit on the value of the RPC timeout, so that the RpcTimeoutMultiplier
-		 * can't increase the RPC timeout higher than this amount.
+		 * MaxRpcTimeout puts a limit on the value of the RPC timeout, so that the
+		 * RpcTimeoutMultiplier can't increase the RPC timeout higher than this amount.
 		 */
 		private Long maxRpcTimeoutSeconds;
 
@@ -360,6 +362,7 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 		public void setMaxRpcTimeoutSeconds(Long maxRpcTimeoutSeconds) {
 			this.maxRpcTimeoutSeconds = maxRpcTimeoutSeconds;
 		}
+
 	}
 
 	/**
@@ -368,12 +371,14 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 	public static class FlowControl {
 
 		/**
-		 * Maximum number of outstanding elements to keep in memory before enforcing flow control.
+		 * Maximum number of outstanding elements to keep in memory before enforcing flow
+		 * control.
 		 */
 		private Long maxOutstandingElementCount;
 
 		/**
-		 * Maximum number of outstanding bytes to keep in memory before enforcing flow control.
+		 * Maximum number of outstanding bytes to keep in memory before enforcing flow
+		 * control.
 		 */
 		private Long maxOutstandingRequestBytes;
 
@@ -386,8 +391,7 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 			return this.maxOutstandingElementCount;
 		}
 
-		public void setMaxOutstandingElementCount(
-				Long maxOutstandingElementCount) {
+		public void setMaxOutstandingElementCount(Long maxOutstandingElementCount) {
 			this.maxOutstandingElementCount = maxOutstandingElementCount;
 		}
 
@@ -395,8 +399,7 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 			return this.maxOutstandingRequestBytes;
 		}
 
-		public void setMaxOutstandingRequestBytes(
-				Long maxOutstandingRequestBytes) {
+		public void setMaxOutstandingRequestBytes(Long maxOutstandingRequestBytes) {
 			this.maxOutstandingRequestBytes = maxOutstandingRequestBytes;
 		}
 
@@ -408,6 +411,7 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 				LimitExceededBehavior limitExceededBehavior) {
 			this.limitExceededBehavior = limitExceededBehavior;
 		}
+
 	}
 
 	/**
@@ -431,8 +435,9 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 		private Long requestByteThreshold;
 
 		/**
-		 * The delay threshold to use for batching. After this amount of time has elapsed (counting
-		 * from the first element added), the elements will be wrapped up in a batch and sent.
+		 * The delay threshold to use for batching. After this amount of time has elapsed
+		 * (counting from the first element added), the elements will be wrapped up in a
+		 * batch and sent.
 		 */
 		private Long delayThresholdSeconds;
 
@@ -476,5 +481,7 @@ public class GcpPubSubProperties implements CredentialsSupplier {
 		public FlowControl getFlowControl() {
 			return this.flowControl;
 		}
+
 	}
+
 }

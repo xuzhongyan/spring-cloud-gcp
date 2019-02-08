@@ -38,8 +38,9 @@ import static org.junit.Assume.assumeThat;
  * @author Dmitry Solomakha
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = DatastoreBookshelfExample.class,
-		properties = { InteractiveShellApplicationRunner.SPRING_SHELL_INTERACTIVE_ENABLED + "=" + false })
+@SpringBootTest(classes = DatastoreBookshelfExample.class, properties = {
+		InteractiveShellApplicationRunner.SPRING_SHELL_INTERACTIVE_ENABLED + "="
+				+ false })
 public class DatastoreBookshelfExampleTests {
 
 	@Autowired
@@ -48,17 +49,17 @@ public class DatastoreBookshelfExampleTests {
 	@Autowired
 	private DatastoreTemplate datastoreTemplate;
 
-	@After
-	public void cleanUp() {
-		this.datastoreTemplate.deleteAll(Book.class);
-	}
-
 	@BeforeClass
 	public static void checkToRun() {
 		assumeThat(
 				"Datastore-sample integration tests are disabled. Please use '-Dit.datastore=true' "
 						+ "to enable them. ",
 				System.getProperty("it.datastore"), is("true"));
+	}
+
+	@After
+	public void cleanUp() {
+		this.datastoreTemplate.deleteAll(Book.class);
 	}
 
 	@Test
@@ -70,11 +71,14 @@ public class DatastoreBookshelfExampleTests {
 		assertThat(allBooks).containsSequence(book1);
 		assertThat(allBooks).containsSequence(book2);
 
-		assertThat(this.shell.evaluate(() -> "find-by-author author1")).isEqualTo("[" + book1 + "]");
+		assertThat(this.shell.evaluate(() -> "find-by-author author1"))
+				.isEqualTo("[" + book1 + "]");
 
-		assertThat(this.shell.evaluate(() -> "find-by-author-year author2 2000")).isEqualTo("[" + book2 + "]");
+		assertThat(this.shell.evaluate(() -> "find-by-author-year author2 2000"))
+				.isEqualTo("[" + book2 + "]");
 
-		assertThat(this.shell.evaluate(() -> "find-by-year-greater-than 1985")).isEqualTo("[" + book2 + "]");
+		assertThat(this.shell.evaluate(() -> "find-by-year-greater-than 1985"))
+				.isEqualTo("[" + book2 + "]");
 
 		this.shell.evaluate(() -> "remove-all-books");
 

@@ -66,6 +66,12 @@ public class DatastoreTransactionTemplateTests {
 
 	private final Key key = Key.newBuilder("a", "b", "c").build();
 
+	/**
+	 * Used to check exception messages and types.
+	 */
+	@Rule
+	public ExpectedException expectedException = ExpectedException.none();
+
 	@MockBean
 	Datastore datastore;
 
@@ -77,12 +83,6 @@ public class DatastoreTransactionTemplateTests {
 
 	@MockBean
 	ObjectToKeyFactory objectToKeyFactory;
-
-	/**
-	 * Used to check exception messages and types.
-	 */
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
 
 	@Before
 	public void setUp() {
@@ -152,8 +152,8 @@ public class DatastoreTransactionTemplateTests {
 	@Test
 	public void unsupportedIsolationTest() {
 		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("DatastoreTransactionManager supports only " +
-				"isolation level TransactionDefinition.ISOLATION_DEFAULT or ISOLATION_SERIALIZABLE");
+		this.expectedException.expectMessage("DatastoreTransactionManager supports only "
+				+ "isolation level TransactionDefinition.ISOLATION_DEFAULT or ISOLATION_SERIALIZABLE");
 
 		this.transactionalService.doNothingUnsupportedIsolation();
 	}
@@ -161,22 +161,24 @@ public class DatastoreTransactionTemplateTests {
 	@Test
 	public void unsupportedPropagationTest() {
 		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("DatastoreTransactionManager supports only " +
-				"propagation behavior TransactionDefinition.PROPAGATION_REQUIRED");
+		this.expectedException.expectMessage("DatastoreTransactionManager supports only "
+				+ "propagation behavior TransactionDefinition.PROPAGATION_REQUIRED");
 		this.transactionalService.doNothingUnsupportedPropagation();
 	}
 
 	@Test
 	public void readOnlySaveTest() {
 		this.expectedException.expect(UnsupportedOperationException.class);
-		this.expectedException.expectMessage("The Cloud Datastore transaction is in read-only mode.");
+		this.expectedException
+				.expectMessage("The Cloud Datastore transaction is in read-only mode.");
 		this.transactionalService.writingInReadOnly();
 	}
 
 	@Test
 	public void readOnlyDeleteTest() {
 		this.expectedException.expect(UnsupportedOperationException.class);
-		this.expectedException.expectMessage("The Cloud Datastore transaction is in read-only mode.");
+		this.expectedException
+				.expectMessage("The Cloud Datastore transaction is in read-only mode.");
 		this.transactionalService.deleteInReadOnly();
 	}
 
@@ -213,12 +215,14 @@ public class DatastoreTransactionTemplateTests {
 		DatastoreTransactionManager datastoreTransactionManager(Datastore datastore) {
 			return new DatastoreTransactionManager(datastore);
 		}
+
 	}
 
 	/**
 	 * A service object used in the test that performs the transactions.
 	 */
 	public static class TransactionalService {
+
 		@Autowired
 		DatastoreTemplate datastoreTemplate;
 
@@ -270,13 +274,17 @@ public class DatastoreTransactionTemplateTests {
 		public void deleteInReadOnly() {
 			this.datastoreTemplate.delete(new TestEntity());
 		}
+
 	}
 
 	@Entity(name = "custom_test_kind")
 	private static class TestEntity {
+
 		@Id
 		String id;
 
 		long val;
+
 	}
+
 }

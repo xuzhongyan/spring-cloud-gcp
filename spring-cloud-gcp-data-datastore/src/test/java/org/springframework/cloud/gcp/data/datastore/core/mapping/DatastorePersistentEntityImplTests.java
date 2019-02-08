@@ -71,7 +71,8 @@ public class DatastorePersistentEntityImplTests {
 	@Test
 	public void testExpressionResolutionWithoutApplicationContext() {
 		this.expectedException.expect(SpelEvaluationException.class);
-		this.expectedException.expectMessage("Property or field 'kindPostfix' cannot be found on null");
+		this.expectedException
+				.expectMessage("Property or field 'kindPostfix' cannot be found on null");
 		DatastorePersistentEntityImpl<EntityWithExpression> entity = new DatastorePersistentEntityImpl<>(
 				ClassTypeInformation.from(EntityWithExpression.class));
 
@@ -99,15 +100,17 @@ public class DatastorePersistentEntityImplTests {
 
 	@Test
 	public void testHasNoIdProperty() {
-		assertThat(new DatastoreMappingContext().getPersistentEntity(EntityWithNoId.class).hasIdProperty()).isFalse();
+		assertThat(new DatastoreMappingContext().getPersistentEntity(EntityWithNoId.class)
+				.hasIdProperty()).isFalse();
 	}
 
 	@Test
 	public void testGetIdPropertyOrFail() {
 		this.expectedException.expect(DatastoreDataException.class);
-		this.expectedException.expectMessage("An ID property was required but does not exist for the type: " +
-				"class org.springframework.cloud.gcp.data.datastore.core.mapping." +
-				"DatastorePersistentEntityImplTests$EntityWithNoId");
+		this.expectedException.expectMessage(
+				"An ID property was required but does not exist for the type: "
+						+ "class org.springframework.cloud.gcp.data.datastore.core.mapping."
+						+ "DatastorePersistentEntityImplTests$EntityWithNoId");
 		new DatastoreMappingContext().getPersistentEntity(EntityWithNoId.class)
 				.getIdPropertyOrFail();
 	}
@@ -122,12 +125,14 @@ public class DatastorePersistentEntityImplTests {
 				.getPersistentEntity(TestEntity.class);
 		PersistentPropertyAccessor accessor = p.getPropertyAccessor(t);
 
-		p.doWithProperties(
-				(SimplePropertyHandler) (property) -> assertThat(accessor.getProperty(property)).isNotEqualTo("b"));
+		p.doWithProperties((SimplePropertyHandler) (
+				property) -> assertThat(accessor.getProperty(property))
+						.isNotEqualTo("b"));
 	}
 
 	@Entity(name = "custom_test_kind")
 	private static class TestEntity {
+
 		@Id
 		String id;
 
@@ -136,32 +141,42 @@ public class DatastorePersistentEntityImplTests {
 
 		@Transient
 		String notMapped;
+
 	}
 
 	private static class EntityNoCustomName {
+
 		@Id
 		String id;
 
 		String something;
+
 	}
 
 	@Entity
 	private static class EntityEmptyCustomName {
+
 		@Id
 		String id;
 
 		String something;
+
 	}
 
 	@Entity(name = "#{'kind_'.concat(kindPostfix)}")
 	private static class EntityWithExpression {
+
 		@Id
 		String id;
 
 		String something;
+
 	}
 
 	private static class EntityWithNoId {
+
 		String id;
+
 	}
+
 }

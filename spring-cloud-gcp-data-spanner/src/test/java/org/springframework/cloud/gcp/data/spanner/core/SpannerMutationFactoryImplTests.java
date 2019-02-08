@@ -114,10 +114,11 @@ public class SpannerMutationFactoryImplTests {
 	public void insertChildrenMismatchIdTest() {
 
 		this.expectedEx.expect(SpannerDataException.class);
-		this.expectedEx.expectMessage("A child entity's common primary key parts with its parent must have " +
-				"the same values. Primary key component 1 does not match for entities: " +
-				"class org.springframework.cloud.gcp.data.spanner.core.SpannerMutationFactoryImplTests$TestEntity " +
-				"class org.springframework.cloud.gcp.data.spanner.core.SpannerMutationFactoryImplTests$ChildEntity");
+		this.expectedEx.expectMessage(
+				"A child entity's common primary key parts with its parent must have "
+						+ "the same values. Primary key component 1 does not match for entities: "
+						+ "class org.springframework.cloud.gcp.data.spanner.core.SpannerMutationFactoryImplTests$TestEntity "
+						+ "class org.springframework.cloud.gcp.data.spanner.core.SpannerMutationFactoryImplTests$ChildEntity");
 
 		TestEntity t = new TestEntity();
 		t.id = "a";
@@ -204,6 +205,7 @@ public class SpannerMutationFactoryImplTests {
 
 	@Table(name = "custom_test_table")
 	private static class TestEntity {
+
 		@PrimaryKey(keyOrder = 1)
 		String id;
 
@@ -215,20 +217,26 @@ public class SpannerMutationFactoryImplTests {
 
 		@Interleaved
 		List<ChildEntity> childEntities;
+
 	}
 
 	@Table(name = "child_test_table")
 	private static class ChildEntity {
+
 		@Embedded
 		@PrimaryKey(keyOrder = 1)
 		EmbeddedKeyComponents keyComponents;
+
 	}
 
 	private static class EmbeddedKeyComponents {
+
 		@PrimaryKey(keyOrder = 1)
 		String id;
 
 		@PrimaryKey(keyOrder = 2)
 		String id2;
+
 	}
+
 }

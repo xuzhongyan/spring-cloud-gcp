@@ -8,21 +8,22 @@
         div {
             margin: 1em;
         }
+
         span.label {
-          display: inline-block;
-          width: 10em;
-          line-height: 200%;
+            display: inline-block;
+            width: 10em;
+            line-height: 200%;
         }
 
         span.narrow-label {
-          display: inline-block;
-          margin: 0 0.5em;
+            display: inline-block;
+            margin: 0 0.5em;
         }
 
         div.section {
-          border: 1px solid grey;
-          padding: 1em;
-          width: 50em;
+            border: 1px solid grey;
+            padding: 1em;
+            width: 50em;
         }
 
         div#statusMessage {
@@ -32,23 +33,23 @@
 
         input.small-number {
             width: 2em;
-         }
+        }
 
     </style>
 
     <script>
 
         function escapeHTML(text) {
-            return text.replace(/[&<>]/g, (ch) => {
-                return {'&':'&amp;', '>': '&gt;', '<': '&lt;'}[ch];
-            })
+            return text.replace(/[&<>]/g, (ch) = > {
+                return {'&': '&amp;', '>': '&gt;', '<': '&lt;'}[ch];
+        })
         }
 
         function showStatus() {
-          const message = new URL(window.location.href).searchParams.get("statusMessage");
-          if (message) {
-            document.getElementById("statusMessage").innerHTML = "Status: " + escapeHTML(message);
-          }
+            const message = new URL(window.location.href).searchParams.get("statusMessage");
+            if (message) {
+                document.getElementById("statusMessage").innerHTML = "Status: " + escapeHTML(message);
+            }
         }
     </script>
 </head>
@@ -60,13 +61,13 @@
     <div>
         <form action="/createTopic" method="post">
             <span class="label">Create topic</span>
-            <input name="topicName" type="text" placeholder="topic name"> <input type="submit">
+            <input name="topicName" placeholder="topic name" type="text"> <input type="submit">
         </form>
     </div>
     <div>
         <form action="/createSubscription" method="post">
             <span class="label">Create subscription</span>
-            <input name="subscriptionName" type="text" placeholder="subscription name">
+            <input name="subscriptionName" placeholder="subscription name" type="text">
             for topic
             <input name="topicName" placeholder="topic name"> <input type="submit">
         </form>
@@ -79,7 +80,7 @@
     <div>
         <form action="/subscribe">
             <span class="label">Message Retrieval</span>
-            <input name="subscription" type="text" placeholder="subscription">
+            <input name="subscription" placeholder="subscription" type="text">
             <input type="submit" value="Subscribe"> (acks one message at a time)
         </form>
     </div>
@@ -88,9 +89,9 @@
             <span class="narrow-label">Send</span>
             <input class="small-number" name="count" type="text" value="1">
             <span class="narrow-label">copies of message</span>
-            <input name="message" type="text" placeholder="message text">
+            <input name="message" placeholder="message text" type="text">
             <span class="narrow-label">to topic</span>
-            <input name="topicName" type="text" placeholder="topic name"> <input type="submit">
+            <input name="topicName" placeholder="topic name" type="text"> <input type="submit">
         </form>
     </div>
 </div>
@@ -102,12 +103,12 @@
     <div>
         <form action="/pull">
             <span class="label">Subscription1</span>
-            <input name="subscription1" type="text" placeholder="first subscription name">
-            <input type="submit" value="Pull From Single Subscription" formaction="/pull">
+            <input name="subscription1" placeholder="first subscription name" type="text">
+            <input formaction="/pull" type="submit" value="Pull From Single Subscription">
             <br/>
             <span class="label">Subscription2</span>
-            <input name="subscription2" type="text" placeholder="second subscription name">
-            <input type="submit" value="Pull From Both Subscriptions" formaction="/multipull">
+            <input name="subscription2" placeholder="second subscription name" type="text">
+            <input formaction="/multipull" type="submit" value="Pull From Both Subscriptions">
         </form>
     </div>
 </div>
@@ -118,13 +119,13 @@
     <div>
         <form action="/deleteTopic" method="post">
             <span class="label">Delete topic</span>
-            <input name="topic" type="text" placeholder="topic name"> <input type="submit">
+            <input name="topic" placeholder="topic name" type="text"> <input type="submit">
         </form>
     </div>
     <div>
         <form action="/deleteSubscription" method="post">
             <span class="label">Delete subscription</span>
-            <input name="subscription" type="text" placeholder="subscription name"> <input type="submit">
+            <input name="subscription" placeholder="subscription name" type="text"> <input type="submit">
         </form>
     </div>
 </div>

@@ -30,11 +30,17 @@ import org.springframework.core.env.Environment;
  * @author Jisha Abubaker
  * @author João André Martins
  * @author Mike Eltsufin
- *
  * @since 1.1
  */
 @ConfigurationProperties("spring.cloud.gcp.config")
 public class GcpConfigProperties implements CredentialsSupplier {
+
+	/**
+	 * Overrides the GCP OAuth2 credentials specified in the Core module.
+	 */
+	@NestedConfigurationProperty
+	private final Credentials credentials = new Credentials(
+			GcpScope.RUNTIME_CONFIG_SCOPE.getUrl());
 
 	/**
 	 * Enables Spring Cloud GCP Config.
@@ -48,8 +54,8 @@ public class GcpConfigProperties implements CredentialsSupplier {
 	private String name;
 
 	/**
-	 * Comma-delimited string of profiles under which the app is running.
-	 * Gets its default value from the {@code spring.profiles.active} property, falling back on the
+	 * Comma-delimited string of profiles under which the app is running. Gets its default
+	 * value from the {@code spring.profiles.active} property, falling back on the
 	 * {@code spring.profiles.default} property.
 	 */
 	private String profile;
@@ -63,12 +69,6 @@ public class GcpConfigProperties implements CredentialsSupplier {
 	 * Overrides the GCP project ID specified in the Core module.
 	 */
 	private String projectId;
-
-	/**
-	 * Overrides the GCP OAuth2 credentials specified in the Core module.
-	 */
-	@NestedConfigurationProperty
-	private final Credentials credentials = new Credentials(GcpScope.RUNTIME_CONFIG_SCOPE.getUrl());
 
 	public GcpConfigProperties(Environment environment) {
 		if (this.profile == null) {
@@ -86,36 +86,36 @@ public class GcpConfigProperties implements CredentialsSupplier {
 		}
 	}
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
 	public boolean isEnabled() {
 		return this.enabled;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	public String getName() {
 		return this.name;
 	}
 
-	public void setProfile(String profile) {
-		this.profile = profile;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getProfile() {
 		return this.profile;
 	}
 
-	public void setTimeoutMillis(int timeoutMillis) {
-		this.timeoutMillis = timeoutMillis;
+	public void setProfile(String profile) {
+		this.profile = profile;
 	}
 
 	public int getTimeoutMillis() {
 		return this.timeoutMillis;
+	}
+
+	public void setTimeoutMillis(int timeoutMillis) {
+		this.timeoutMillis = timeoutMillis;
 	}
 
 	public String getProjectId() {

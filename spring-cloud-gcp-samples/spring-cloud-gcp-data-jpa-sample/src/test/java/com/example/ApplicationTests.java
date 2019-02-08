@@ -43,8 +43,18 @@ import static org.junit.Assume.assumeThat;
  * @author Daniel Zou
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {DemoApplication.class})
+@SpringBootTest(classes = { DemoApplication.class })
 public class ApplicationTests {
+
+	/**
+	 * Used to check exception messages and types.
+	 */
+	@Rule
+	public OutputCapture outputCapture = new OutputCapture();
+
+	@Autowired
+	private CommandLineRunner commandLineRunner;
+
 	@BeforeClass
 	public static void checkToRun() {
 		assumeThat(
@@ -53,21 +63,14 @@ public class ApplicationTests {
 				System.getProperty("it.cloudsql"), is("true"));
 	}
 
-	@Autowired
-	private CommandLineRunner commandLineRunner;
-
-	/**
-	 * Used to check exception messages and types.
-	 */
-	@Rule
-	public OutputCapture outputCapture = new OutputCapture();
-
 	@Test
 	public void basicTest() throws Exception {
 		// we need to run the command line runner again to capture output
 		this.commandLineRunner.run();
 
 		assertThat(this.outputCapture.toString()).contains("Number of houses is 4");
-		assertThat(this.outputCapture.toString()).contains("636 Avenue of the Americas, NYC");
+		assertThat(this.outputCapture.toString())
+				.contains("636 Avenue of the Americas, NYC");
 	}
+
 }

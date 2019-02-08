@@ -55,12 +55,9 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "spring.cloud.gcp.storage.auto-create-files=false",
-				"spring.cloud.gcp.config.enabled=false",
-				"spring.main.banner-mode=off"
-		})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+		"spring.cloud.gcp.storage.auto-create-files=false",
+		"spring.cloud.gcp.config.enabled=false", "spring.main.banner-mode=off" })
 public class GcpStorageAutoConfigurationTests {
 
 	@LocalServerPort
@@ -72,36 +69,29 @@ public class GcpStorageAutoConfigurationTests {
 	@Test
 	public void testValidObject() throws Exception {
 		TestRestTemplate testRestTemplate = new TestRestTemplate();
-		Long actual = testRestTemplate.getForObject("http://localhost:" + this.port + "/resource", Long.class);
+		Long actual = testRestTemplate
+				.getForObject("http://localhost:" + this.port + "/resource", Long.class);
 		assertThat(actual).isEqualTo(4096);
 	}
 
 	@Test
 	public void testAutoCreateFilesFalse() throws IOException {
-		assertThat(((GoogleStorageResource) this.googleStorageResource)
-				.isAutoCreateFiles()).isFalse();
+		assertThat(
+				((GoogleStorageResource) this.googleStorageResource).isAutoCreateFiles())
+						.isFalse();
 	}
 
 	/**
 	 * The web app for the test.
 	 */
-	@SpringBootApplication(exclude = {
-			GcpContextAutoConfiguration.class,
-			GcpCloudSqlAutoConfiguration.class,
-			DataSourceAutoConfiguration.class,
-			SecurityAutoConfiguration.class,
-			IapAuthenticationAutoConfiguration.class
-	})
+	@SpringBootApplication(exclude = { GcpContextAutoConfiguration.class,
+			GcpCloudSqlAutoConfiguration.class, DataSourceAutoConfiguration.class,
+			SecurityAutoConfiguration.class, IapAuthenticationAutoConfiguration.class })
 	@RestController
 	static class StorageApplication {
 
 		@Value("gs://test-spring/images/spring.png")
 		private Resource remoteResource;
-
-		@GetMapping("/resource")
-		public long getResource() throws IOException {
-			return this.remoteResource.contentLength();
-		}
 
 		@Bean
 		public static Storage mockStorage() throws Exception {
@@ -123,6 +113,12 @@ public class GcpStorageAutoConfigurationTests {
 		public static GcpProjectIdProvider gcpProjectIdProvider() {
 			return () -> "hollow-light-of-the-sealed-land";
 		}
+
+		@GetMapping("/resource")
+		public long getResource() throws IOException {
+			return this.remoteResource.contentLength();
+		}
+
 	}
 
 }

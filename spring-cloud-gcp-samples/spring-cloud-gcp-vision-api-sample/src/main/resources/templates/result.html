@@ -1,24 +1,24 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Google Cloud Vision Results</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Google Cloud Vision Results</title>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
 </head>
 <body>
-  <h1>Annotations Produced for the Image</h1>
-  <table border="1">
+<h1>Annotations Produced for the Image</h1>
+<table border="1">
     <tr>
-      <th>Description</th>
-      <th>Score</th>
+        <th>Description</th>
+        <th>Score</th>
     </tr>
     <tr th:each="entry : ${annotations}">
-      <td>[[${entry.key}]]</td>
-      <td>[[${entry.value}]]</td>
+        <td>[[${entry.key}]]</td>
+        <td>[[${entry.value}]]</td>
     </tr>
-  </table>
+</table>
 
-  <p>
+<p>
     <img th:src="${imageUrl}"/>
-  </p>
+</p>
 </body>
 </html>

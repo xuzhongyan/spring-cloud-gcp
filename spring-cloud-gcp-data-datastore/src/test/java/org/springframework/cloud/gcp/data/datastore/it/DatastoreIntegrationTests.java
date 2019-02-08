@@ -73,6 +73,20 @@ public class DatastoreIntegrationTests {
 	// consistency.
 	private static final int WAIT_FOR_EVENTUAL_CONSISTENCY_SAFETY_MULTIPLE = 3;
 
+	private final TestEntity testEntityA = new TestEntity(1L, "red", 1L, Shape.CIRCLE,
+			null);
+
+	private final TestEntity testEntityB = new TestEntity(2L, "blue", 1L, Shape.CIRCLE,
+			null);
+
+	private final TestEntity testEntityC = new TestEntity(3L, "red", 1L, Shape.CIRCLE,
+			null);
+
+	private final TestEntity testEntityD = new TestEntity(4L, "red", 1L, Shape.SQUARE,
+			null);
+
+	private final List<TestEntity> allTestEntities;
+
 	@Autowired
 	private TestEntityRepository testEntityRepository;
 
@@ -86,20 +100,12 @@ public class DatastoreIntegrationTests {
 	private DatastoreReaderWriter datastore;
 
 	private Key keyForMap;
+
 	private long millisWaited;
 
-	private final TestEntity testEntityA = new TestEntity(1L, "red", 1L, Shape.CIRCLE, null);
-
-	private final TestEntity testEntityB = new TestEntity(2L, "blue", 1L, Shape.CIRCLE, null);
-
-	private final TestEntity testEntityC = new TestEntity(3L, "red", 1L, Shape.CIRCLE, null);
-
-	private final TestEntity testEntityD = new TestEntity(4L, "red", 1L, Shape.SQUARE, null);
-
-	private final List<TestEntity> allTestEntities;
-
 	{
-		this.allTestEntities = Arrays.asList(this.testEntityA, this.testEntityB, this.testEntityC, this.testEntityD);
+		this.allTestEntities = Arrays.asList(this.testEntityA, this.testEntityB,
+				this.testEntityC, this.testEntityD);
 	}
 
 	@BeforeClass
@@ -136,42 +142,40 @@ public class DatastoreIntegrationTests {
 
 	@Test
 	public void testFindByExample() {
-		assertThat(this.testEntityRepository
-				.findAll(Example.of(new TestEntity(null, "red", null, Shape.CIRCLE, null))))
-				.containsExactlyInAnyOrder(this.testEntityA, this.testEntityC);
+		assertThat(this.testEntityRepository.findAll(
+				Example.of(new TestEntity(null, "red", null, Shape.CIRCLE, null))))
+						.containsExactlyInAnyOrder(this.testEntityA, this.testEntityC);
 
-		Page<TestEntity> result = this.testEntityRepository
-				.findAll(
-						Example.of(new TestEntity(null, null, null, null, null)),
-						PageRequest.of(1, 2));
+		Page<TestEntity> result = this.testEntityRepository.findAll(
+				Example.of(new TestEntity(null, null, null, null, null)),
+				PageRequest.of(1, 2));
 		assertThat(result.getTotalElements()).isEqualTo(4);
 		assertThat(result.getNumberOfElements()).isEqualTo(2);
 		assertThat(result.getTotalPages()).isEqualTo(2);
 
-		assertThat(this.testEntityRepository
-				.findAll(
-						Example.of(new TestEntity(null, null, null, null, null)),
-						Sort.by(Sort.Direction.ASC, "id")))
-				.containsExactly(this.testEntityA, this.testEntityB, this.testEntityC, this.testEntityD);
+		assertThat(this.testEntityRepository.findAll(
+				Example.of(new TestEntity(null, null, null, null, null)),
+				Sort.by(Sort.Direction.ASC, "id"))).containsExactly(this.testEntityA,
+						this.testEntityB, this.testEntityC, this.testEntityD);
 
-		assertThat(this.testEntityRepository
-				.count(Example.of(new TestEntity(null, "red", null, Shape.CIRCLE, null),
-						ExampleMatcher.matching().withIgnorePaths("id", "size", "blobField"))))
-				.isEqualTo(2);
+		assertThat(this.testEntityRepository.count(Example.of(
+				new TestEntity(null, "red", null, Shape.CIRCLE, null),
+				ExampleMatcher.matching().withIgnorePaths("id", "size", "blobField"))))
+						.isEqualTo(2);
 
-		assertThat(this.testEntityRepository
-				.exists(Example.of(new TestEntity(null, "red", null, Shape.CIRCLE, null),
-						ExampleMatcher.matching().withIgnorePaths("id", "size", "blobField"))))
-				.isEqualTo(true);
+		assertThat(this.testEntityRepository.exists(Example.of(
+				new TestEntity(null, "red", null, Shape.CIRCLE, null),
+				ExampleMatcher.matching().withIgnorePaths("id", "size", "blobField"))))
+						.isEqualTo(true);
 
 		assertThat(this.testEntityRepository
 				.exists(Example.of(new TestEntity(null, "red", null, null, null),
 						ExampleMatcher.matching().withIncludeNullValues())))
-				.isEqualTo(false);
+								.isEqualTo(false);
 
 		assertThat(this.testEntityRepository
 				.exists(Example.of(new TestEntity(null, "red", null, null, null))))
-				.isEqualTo(true);
+						.isEqualTo(true);
 	}
 
 	@Test
@@ -180,16 +184,20 @@ public class DatastoreIntegrationTests {
 		assertThat(this.testEntityRepository.findByShape(Shape.SQUARE).stream()
 				.map(TestEntity::getId).collect(Collectors.toList())).contains(4L);
 
-		assertThat(this.testEntityRepository.findByColor("red", PageRequest.of(0, 1)).hasNext()).isTrue();
-		assertThat(this.testEntityRepository.findByColor("red", PageRequest.of(1, 1)).hasNext()).isTrue();
-		assertThat(
-				this.testEntityRepository.findByColor("red", PageRequest.of(2, 1)).hasNext()).isFalse();
+		assertThat(this.testEntityRepository.findByColor("red", PageRequest.of(0, 1))
+				.hasNext()).isTrue();
+		assertThat(this.testEntityRepository.findByColor("red", PageRequest.of(1, 1))
+				.hasNext()).isTrue();
+		assertThat(this.testEntityRepository.findByColor("red", PageRequest.of(2, 1))
+				.hasNext()).isFalse();
 
-		Page<TestEntity> circles = this.testEntityRepository.findByShape(Shape.CIRCLE, PageRequest.of(0, 2));
+		Page<TestEntity> circles = this.testEntityRepository.findByShape(Shape.CIRCLE,
+				PageRequest.of(0, 2));
 		assertThat(circles.getTotalElements()).isEqualTo(3L);
 		assertThat(circles.getTotalPages()).isEqualTo(2);
 		assertThat(circles.get().count()).isEqualTo(2L);
-		assertThat(circles.get().allMatch((e) -> e.getShape().equals(Shape.CIRCLE))).isTrue();
+		assertThat(circles.get().allMatch((e) -> e.getShape().equals(Shape.CIRCLE)))
+				.isTrue();
 
 		assertThat(this.testEntityRepository.findByEnumQueryParam(Shape.SQUARE).stream()
 				.map(TestEntity::getId).collect(Collectors.toList())).contains(4L);
@@ -201,10 +209,9 @@ public class DatastoreIntegrationTests {
 		this.millisWaited = Math.max(this.millisWaited,
 				waitUntilTrue(() -> this.testEntityRepository.countBySize(1L) == 4));
 
-		assertThat(
-				this.testEntityRepository.removeByColor("red").stream()
-						.map(TestEntity::getId).collect(Collectors.toList()))
-								.containsExactlyInAnyOrder(1L, 3L, 4L);
+		assertThat(this.testEntityRepository.removeByColor("red").stream()
+				.map(TestEntity::getId).collect(Collectors.toList()))
+						.containsExactlyInAnyOrder(1L, 3L, 4L);
 
 		this.testEntityRepository.saveAll(this.allTestEntities);
 		assertThat(this.testEntityRepository.findById(1L).get().getBlobField()).isNull();
@@ -227,18 +234,20 @@ public class DatastoreIntegrationTests {
 		assertThat(this.testEntityRepository.countBySizeAndColor(1, "blue")).isEqualTo(1);
 		assertThat(this.testEntityRepository.getById(2L).getColor()).isEqualTo("blue");
 		assertThat(this.testEntityRepository.countBySizeAndColor(1, "red")).isEqualTo(3);
-		assertThat(
-				this.testEntityRepository.findTop3BySizeAndColor(1, "red").stream()
-						.map(TestEntity::getId).collect(Collectors.toList()))
-								.containsExactlyInAnyOrder(1L, 3L, 4L);
+		assertThat(this.testEntityRepository.findTop3BySizeAndColor(1, "red").stream()
+				.map(TestEntity::getId).collect(Collectors.toList()))
+						.containsExactlyInAnyOrder(1L, 3L, 4L);
 
-		assertThat(this.testEntityRepository.getKeys().stream().map(Key::getId).collect(Collectors.toList()))
-				.containsExactlyInAnyOrder(1L, 2L, 3L, 4L);
+		assertThat(this.testEntityRepository.getKeys().stream().map(Key::getId)
+				.collect(Collectors.toList())).containsExactlyInAnyOrder(1L, 2L, 3L, 4L);
 
 		assertThat(foundByCustomQuery.size()).isEqualTo(1);
-		assertThat(this.testEntityRepository.countEntitiesWithCustomQuery(1L)).isEqualTo(4);
-		assertThat(this.testEntityRepository.existsByEntitiesWithCustomQuery(1L)).isTrue();
-		assertThat(foundByCustomQuery.get(0).getBlobField()).isEqualTo(Blob.copyFrom("testValueA".getBytes()));
+		assertThat(this.testEntityRepository.countEntitiesWithCustomQuery(1L))
+				.isEqualTo(4);
+		assertThat(this.testEntityRepository.existsByEntitiesWithCustomQuery(1L))
+				.isTrue();
+		assertThat(foundByCustomQuery.get(0).getBlobField())
+				.isEqualTo(Blob.copyFrom("testValueA".getBytes()));
 
 		assertThat(foundByCustomProjectionQuery.length).isEqualTo(1);
 		assertThat(foundByCustomProjectionQuery[0].getBlobField()).isNull();
@@ -255,7 +264,8 @@ public class DatastoreIntegrationTests {
 
 		assertThat(this.testEntityRepository.findById(1L).get().getBlobField()).isNull();
 
-		assertThat(this.testEntityRepository.findAllById(Arrays.asList(1L, 2L))).hasSize(2);
+		assertThat(this.testEntityRepository.findAllById(Arrays.asList(1L, 2L)))
+				.hasSize(2);
 
 		this.testEntityRepository.delete(this.testEntityA);
 
@@ -285,7 +295,8 @@ public class DatastoreIntegrationTests {
 
 		assertThat(this.testEntityRepository.count()).isEqualTo(0);
 
-		assertThat(this.testEntityRepository.findAllById(Arrays.asList(1L, 2L)).iterator().hasNext()).isFalse();
+		assertThat(this.testEntityRepository.findAllById(Arrays.asList(1L, 2L)).iterator()
+				.hasNext()).isFalse();
 	}
 
 	@Test
@@ -295,10 +306,10 @@ public class DatastoreIntegrationTests {
 		EmbeddableTreeNode treeNode9 = new EmbeddableTreeNode(9, treeNode8, treeNode10);
 		EmbeddableTreeNode treeNode7 = new EmbeddableTreeNode(7, null, treeNode9);
 
-
 		this.datastoreTemplate.save(treeNode7);
 
-		EmbeddableTreeNode loaded = this.datastoreTemplate.findById(7L, EmbeddableTreeNode.class);
+		EmbeddableTreeNode loaded = this.datastoreTemplate.findById(7L,
+				EmbeddableTreeNode.class);
 
 		assertThat(loaded).isEqualTo(treeNode7);
 	}
@@ -310,8 +321,8 @@ public class DatastoreIntegrationTests {
 		EmbeddableTreeNode treeNode9 = new EmbeddableTreeNode(9, treeNode8, treeNode10);
 		EmbeddableTreeNode treeNode7 = new EmbeddableTreeNode(7, null, treeNode9);
 
-		TreeCollection treeCollection =
-				new TreeCollection(1L, Arrays.asList(treeNode7, treeNode8, treeNode9, treeNode10));
+		TreeCollection treeCollection = new TreeCollection(1L,
+				Arrays.asList(treeNode7, treeNode8, treeNode9, treeNode10));
 
 		this.datastoreTemplate.save(treeCollection);
 
@@ -322,30 +333,37 @@ public class DatastoreIntegrationTests {
 
 	@Test
 	public void ancestorsTest() {
-		AncestorEntity.DescendantEntry descendantEntryA = new AncestorEntity.DescendantEntry("a");
-		AncestorEntity.DescendantEntry descendantEntryB = new AncestorEntity.DescendantEntry("b");
-		AncestorEntity.DescendantEntry descendantEntryC = new AncestorEntity.DescendantEntry("c");
+		AncestorEntity.DescendantEntry descendantEntryA = new AncestorEntity.DescendantEntry(
+				"a");
+		AncestorEntity.DescendantEntry descendantEntryB = new AncestorEntity.DescendantEntry(
+				"b");
+		AncestorEntity.DescendantEntry descendantEntryC = new AncestorEntity.DescendantEntry(
+				"c");
 
-		AncestorEntity ancestorEntity =
-				new AncestorEntity("abc", Arrays.asList(descendantEntryA, descendantEntryB, descendantEntryC));
+		AncestorEntity ancestorEntity = new AncestorEntity("abc",
+				Arrays.asList(descendantEntryA, descendantEntryB, descendantEntryC));
 
 		this.datastoreTemplate.save(ancestorEntity);
 		waitUntilTrue(() -> {
-			AncestorEntity byId = this.datastoreTemplate.findById(ancestorEntity.id, AncestorEntity.class);
+			AncestorEntity byId = this.datastoreTemplate.findById(ancestorEntity.id,
+					AncestorEntity.class);
 			return byId != null && byId.descendants.size() == 3;
 		});
 
-		AncestorEntity loadedEntity = this.datastoreTemplate.findById(ancestorEntity.id, AncestorEntity.class);
+		AncestorEntity loadedEntity = this.datastoreTemplate.findById(ancestorEntity.id,
+				AncestorEntity.class);
 		assertThat(loadedEntity).isEqualTo(ancestorEntity);
 
-		ancestorEntity.descendants.forEach((descendatEntry) -> descendatEntry.name = descendatEntry.name + " updated");
+		ancestorEntity.descendants
+				.forEach((descendatEntry) -> descendatEntry.name = descendatEntry.name
+						+ " updated");
 		this.datastoreTemplate.save(ancestorEntity);
-		waitUntilTrue(() ->
-				this.datastoreTemplate.findAll(AncestorEntity.DescendantEntry.class)
-						.stream().allMatch((descendatEntry) -> descendatEntry.name.contains("updated")));
+		waitUntilTrue(() -> this.datastoreTemplate
+				.findAll(AncestorEntity.DescendantEntry.class).stream()
+				.allMatch((descendatEntry) -> descendatEntry.name.contains("updated")));
 
-		AncestorEntity loadedEntityAfterUpdate =
-				this.datastoreTemplate.findById(ancestorEntity.id, AncestorEntity.class);
+		AncestorEntity loadedEntityAfterUpdate = this.datastoreTemplate
+				.findById(ancestorEntity.id, AncestorEntity.class);
 		assertThat(loadedEntityAfterUpdate).isEqualTo(ancestorEntity);
 	}
 
@@ -354,12 +372,15 @@ public class DatastoreIntegrationTests {
 		ReferenceEntry child1 = new ReferenceEntry("child1", null, null);
 		ReferenceEntry child2 = new ReferenceEntry("child2", null, null);
 		ReferenceEntry sibling = new ReferenceEntry("sibling", null, null);
-		ReferenceEntry parent = new ReferenceEntry("parent", sibling, Arrays.asList(child1, child2));
+		ReferenceEntry parent = new ReferenceEntry("parent", sibling,
+				Arrays.asList(child1, child2));
 
 		this.datastoreTemplate.save(parent);
-		waitUntilTrue(() -> this.datastoreTemplate.findAll(ReferenceEntry.class).size() == 4);
+		waitUntilTrue(
+				() -> this.datastoreTemplate.findAll(ReferenceEntry.class).size() == 4);
 
-		ReferenceEntry loadedParent = this.datastoreTemplate.findById(parent.id, ReferenceEntry.class);
+		ReferenceEntry loadedParent = this.datastoreTemplate.findById(parent.id,
+				ReferenceEntry.class);
 		assertThat(loadedParent).isEqualTo(parent);
 
 		parent.name = "parent updated";
@@ -368,11 +389,11 @@ public class DatastoreIntegrationTests {
 
 		this.datastoreTemplate.save(parent);
 
-		waitUntilTrue(() ->
-				this.datastoreTemplate.findAll(ReferenceEntry.class)
-						.stream().allMatch((entry) -> entry.name.contains("updated")));
+		waitUntilTrue(() -> this.datastoreTemplate.findAll(ReferenceEntry.class).stream()
+				.allMatch((entry) -> entry.name.contains("updated")));
 
-		ReferenceEntry loadedParentAfterUpdate = this.datastoreTemplate.findById(parent.id, ReferenceEntry.class);
+		ReferenceEntry loadedParentAfterUpdate = this.datastoreTemplate
+				.findById(parent.id, ReferenceEntry.class);
 		assertThat(loadedParentAfterUpdate).isEqualTo(parent);
 	}
 
@@ -396,7 +417,8 @@ public class DatastoreIntegrationTests {
 		this.keyForMap = this.datastoreTemplate.createKey("map", "myMap");
 
 		this.datastoreTemplate.writeMap(this.keyForMap, map);
-		Map<String, Long> loadedMap = this.datastoreTemplate.findByIdAsMap(this.keyForMap, Long.class);
+		Map<String, Long> loadedMap = this.datastoreTemplate.findByIdAsMap(this.keyForMap,
+				Long.class);
 
 		assertThat(loadedMap).isEqualTo(map);
 	}
@@ -408,7 +430,8 @@ public class DatastoreIntegrationTests {
 		SubEntity subEntity3 = new SubEntity();
 		SubEntity subEntity4 = new SubEntity();
 
-		ParentEntity parentEntity = new ParentEntity(Arrays.asList(subEntity1, subEntity2),
+		ParentEntity parentEntity = new ParentEntity(
+				Arrays.asList(subEntity1, subEntity2),
 				Collections.singletonList(subEntity4), subEntity3);
 		subEntity1.parent = parentEntity;
 		subEntity2.parent = parentEntity;
@@ -423,7 +446,8 @@ public class DatastoreIntegrationTests {
 
 		this.datastoreTemplate.save(parentEntity);
 
-		ParentEntity readParentEntity = this.datastoreTemplate.findById(parentEntity.id, ParentEntity.class);
+		ParentEntity readParentEntity = this.datastoreTemplate.findById(parentEntity.id,
+				ParentEntity.class);
 
 		SubEntity readSubEntity1 = readParentEntity.subEntities.get(0);
 		assertThat(readSubEntity1.parent).isSameAs(readParentEntity);
@@ -438,8 +462,8 @@ public class DatastoreIntegrationTests {
 		assertThat(readSubEntity4.sibling).isSameAs(readSubEntity3);
 		assertThat(readSubEntity3.sibling).isSameAs(readSubEntity4);
 
-		Collection<SubEntity> allById = this.datastoreTemplate.findAllById(Arrays.asList(subEntity1.key, subEntity2.key),
-				SubEntity.class);
+		Collection<SubEntity> allById = this.datastoreTemplate.findAllById(
+				Arrays.asList(subEntity1.key, subEntity2.key), SubEntity.class);
 		Iterator<SubEntity> iterator = allById.iterator();
 		readSubEntity1 = iterator.next();
 		SubEntity readSubEntity2 = iterator.next();
@@ -449,10 +473,12 @@ public class DatastoreIntegrationTests {
 
 	private long waitUntilTrue(Supplier<Boolean> condition) {
 		long startTime = System.currentTimeMillis();
-		Awaitility.await().atMost(QUERY_WAIT_INTERVAL_SECONDS, TimeUnit.SECONDS).until(condition::get);
+		Awaitility.await().atMost(QUERY_WAIT_INTERVAL_SECONDS, TimeUnit.SECONDS)
+				.until(condition::get);
 
 		return System.currentTimeMillis() - startTime;
 	}
+
 }
 
 /**
@@ -462,6 +488,7 @@ public class DatastoreIntegrationTests {
  */
 @Entity
 class ParentEntity {
+
 	@Id
 	Long id;
 
@@ -474,11 +501,13 @@ class ParentEntity {
 	@Descendants
 	List<SubEntity> descendants;
 
-	ParentEntity(List<SubEntity> subEntities, List<SubEntity> descendants, SubEntity singularSubEntity) {
+	ParentEntity(List<SubEntity> subEntities, List<SubEntity> descendants,
+			SubEntity singularSubEntity) {
 		this.subEntities = subEntities;
 		this.singularSubEntity = singularSubEntity;
 		this.descendants = descendants;
 	}
+
 }
 
 /**
@@ -488,6 +517,7 @@ class ParentEntity {
  */
 @Entity
 class SubEntity {
+
 	@Id
 	Key key;
 
@@ -496,4 +526,5 @@ class SubEntity {
 
 	@Reference
 	SubEntity sibling;
+
 }

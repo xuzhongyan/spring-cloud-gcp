@@ -77,7 +77,6 @@ import org.springframework.util.TypeUtils;
  * An implementation of {@link DatastoreOperations}.
  *
  * @author Chengyuan Zhao
- *
  * @since 1.1
  */
 public class DatastoreTemplate implements DatastoreOperations {
@@ -107,6 +106,49 @@ public class DatastoreTemplate implements DatastoreOperations {
 		this.objectToKeyFactory = objectToKeyFactory;
 	}
 
+	public static void applyQueryOptions(StructuredQuery.Builder builder,
+			DatastoreQueryOptions queryOptions,
+			DatastorePersistentEntity<?> persistentEntity) {
+		if (queryOptions == null) {
+			return;
+		}
+		if (queryOptions.getLimit() != null) {
+			builder.setLimit(queryOptions.getLimit());
+		}
+		if (queryOptions.getOffset() != null) {
+			builder.setOffset(queryOptions.getOffset());
+		}
+		if (queryOptions.getSort() != null && persistentEntity != null) {
+			queryOptions.getSort().stream()
+					.map((order) -> createOrderBy(persistentEntity, order))
+					.forEachOrdered((orderBy) -> builder.addOrderBy(orderBy));
+		}
+	}
+
+	private static StructuredQuery.OrderBy createOrderBy(
+			DatastorePersistentEntity<?> persistentEntity, Sort.Order order) {
+		if (order.isIgnoreCase()) {
+			throw new DatastoreDataException(
+					"Datastore doesn't support sorting ignoring case");
+		}
+		if (!order.getNullHandling().equals(Sort.NullHandling.NATIVE)) {
+			throw new DatastoreDataException(
+					"Datastore supports only NullHandling.NATIVE null handling");
+		}
+		return new StructuredQuery.OrderBy(
+				persistentEntity.getPersistentProperty(order.getProperty())
+						.getFieldName(),
+				(order.getDirection() == Sort.Direction.DESC)
+						? StructuredQuery.OrderBy.Direction.DESCENDING
+						: StructuredQuery.OrderBy.Direction.ASCENDING);
+	}
+
+	public static PathElement keyToPathElement(Key key) {
+		Assert.notNull(key, "A non-null key is required");
+		return (key.getName() != null) ? PathElement.of(key.getKind(), key.getName())
+				: PathElement.of(key.getKind(), key.getId());
+	}
+
 	/**
 	 * Get the {@link DatastoreEntityConverter} used by this template.
 	 * @return the converter.
@@ -120,8 +162,9 @@ public class DatastoreTemplate implements DatastoreOperations {
 		return findById(id, entityClass, new ReadContext());
 	}
 
-	private  <T> T findById(Object id, Class<T> entityClass, ReadContext context) {
-		Iterator<T> results = findAllById(Collections.singleton(id), entityClass, context).iterator();
+	private <T> T findById(Object id, Class<T> entityClass, ReadContext context) {
+		Iterator<T> results = findAllById(Collections.singleton(id), entityClass, context)
+				.iterator();
 		return results.hasNext() ? results.next() : null;
 	}
 
@@ -140,7 +183,8 @@ public class DatastoreTemplate implements DatastoreOperations {
 		return saveAll(entities, new HashSet<>(), ancestors);
 	}
 
-	private <T> Iterable<T> saveAll(Iterable<T> entities, Set<Key> persisted, Key... ancestors) {
+	private <T> Iterable<T> saveAll(Iterable<T> entities, Set<Key> persisted,
+			Key... ancestors) {
 		List<Entity> entitiesForSave = new LinkedList<>();
 		for (T entity : entities) {
 			Key key = getKey(entity, true, ancestors);
@@ -175,7 +219,7 @@ public class DatastoreTemplate implements DatastoreOperations {
 	public <T> void deleteAll(Iterable<T> entities) {
 		getDatastoreReadWriter()
 				.delete(StreamSupport.stream(entities.spliterator(), false)
-				.map((x) -> getKey(x, false)).toArray(Key[]::new));
+						.map((x) -> getKey(x, false)).toArray(Key[]::new));
 	}
 
 	@Override
@@ -195,13 +239,17 @@ public class DatastoreTemplate implements DatastoreOperations {
 		return findAllById(ids, entityClass, new ReadContext());
 	}
 
-	private <T> Collection<T> findAllById(Iterable<?> ids, Class<T> entityClass, ReadContext context) {
+	private <T> Collection<T> findAllById(Iterable<?> ids, Class<T> entityClass,
+			ReadContext context) {
 		List<Key> keys = getKeysFromIds(ids, entityClass);
-		List<Key> missingKeys = keys.stream().filter(context::notCached).collect(Collectors.toList());
+		List<Key> missingKeys = keys.stream().filter(context::notCached)
+				.collect(Collectors.toList());
 
 		if (!missingKeys.isEmpty()) {
-			List<Entity> entities = getDatastoreReadWriter().fetch(missingKeys.toArray(new Key[] {}));
-			Assert.isTrue(missingKeys.size() == entities.size(), "Fetched incorrect number of entities");
+			List<Entity> entities = getDatastoreReadWriter()
+					.fetch(missingKeys.toArray(new Key[] {}));
+			Assert.isTrue(missingKeys.size() == entities.size(),
+					"Fetched incorrect number of entities");
 
 			for (int i = 0; i < missingKeys.size(); i++) {
 				BaseKey key = missingKeys.get(i);
@@ -219,8 +267,8 @@ public class DatastoreTemplate implements DatastoreOperations {
 	}
 
 	/**
-	 * Finds objects by using a Cloud Datastore query. If the query is a key-query, then keys are
-	 * returned.
+	 * Finds objects by using a Cloud Datastore query. If the query is a key-query, then
+	 * keys are returned.
 	 * @param query the query to execute.
 	 * @param entityClass the type of object to retrieve.
 	 * @param <T> the type of object to retrieve.
@@ -254,42 +302,31 @@ public class DatastoreTemplate implements DatastoreOperations {
 	}
 
 	@Override
-	public <T> Iterable<T> queryByExample(Example<T> example, DatastoreQueryOptions queryOptions) {
-		return query(exampleToQuery(example, queryOptions, false), example.getProbeType());
+	public <T> Iterable<T> queryByExample(Example<T> example,
+			DatastoreQueryOptions queryOptions) {
+		return query(exampleToQuery(example, queryOptions, false),
+				example.getProbeType());
 	}
 
 	@Override
-	public <T> Iterable<Key> keyQueryByExample(Example<T> example, DatastoreQueryOptions queryOptions) {
-		QueryResults results = this.datastore.run(exampleToQuery(example, queryOptions, true));
+	public <T> Iterable<Key> keyQueryByExample(Example<T> example,
+			DatastoreQueryOptions queryOptions) {
+		QueryResults results = this.datastore
+				.run(exampleToQuery(example, queryOptions, true));
 		return () -> results;
 	}
 
 	@Override
-	public <T> Collection<T> findAll(Class<T> entityClass, DatastoreQueryOptions queryOptions) {
-		DatastorePersistentEntity<?> persistentEntity = this.datastoreMappingContext.getPersistentEntity(entityClass);
+	public <T> Collection<T> findAll(Class<T> entityClass,
+			DatastoreQueryOptions queryOptions) {
+		DatastorePersistentEntity<?> persistentEntity = this.datastoreMappingContext
+				.getPersistentEntity(entityClass);
 		EntityQuery.Builder builder = Query.newEntityQueryBuilder()
 				.setKind(persistentEntity.kindName());
 		applyQueryOptions(builder, queryOptions, persistentEntity);
 
-		return convertEntitiesForRead(getDatastoreReadWriter().run(builder.build()), entityClass);
-	}
-
-	public static void applyQueryOptions(StructuredQuery.Builder builder, DatastoreQueryOptions queryOptions,
-			DatastorePersistentEntity<?> persistentEntity) {
-		if (queryOptions == null) {
-			return;
-		}
-		if (queryOptions.getLimit() != null) {
-			builder.setLimit(queryOptions.getLimit());
-		}
-		if (queryOptions.getOffset() != null) {
-			builder.setOffset(queryOptions.getOffset());
-		}
-		if (queryOptions.getSort() != null && persistentEntity != null) {
-			queryOptions.getSort().stream()
-					.map((order) -> createOrderBy(persistentEntity, order))
-					.forEachOrdered((orderBy) -> builder.addOrderBy(orderBy));
-		}
+		return convertEntitiesForRead(getDatastoreReadWriter().run(builder.build()),
+				entityClass);
 	}
 
 	@Override
@@ -306,11 +343,11 @@ public class DatastoreTemplate implements DatastoreOperations {
 							+ "was not called in an ongoing transaction.");
 		}
 		return ((Datastore) getDatastoreReadWriter())
-				.runInTransaction(
-				(DatastoreReaderWriter readerWriter) -> operations.apply(new DatastoreTemplate(readerWriter,
-						DatastoreTemplate.this.datastoreEntityConverter,
-						DatastoreTemplate.this.datastoreMappingContext,
-						DatastoreTemplate.this.objectToKeyFactory)));
+				.runInTransaction((DatastoreReaderWriter readerWriter) -> operations
+						.apply(new DatastoreTemplate(readerWriter,
+								DatastoreTemplate.this.datastoreEntityConverter,
+								DatastoreTemplate.this.datastoreMappingContext,
+								DatastoreTemplate.this.objectToKeyFactory)));
 	}
 
 	@Override
@@ -319,7 +356,8 @@ public class DatastoreTemplate implements DatastoreOperations {
 		Assert.notNull(valueType, "A non-null valueType is required.");
 
 		Entity entity = getDatastoreReadWriter().get(key);
-		return this.datastoreEntityConverter.readAsMap(String.class, ClassTypeInformation.from(valueType), entity);
+		return this.datastoreEntityConverter.readAsMap(String.class,
+				ClassTypeInformation.from(valueType), entity);
 	}
 
 	@Override
@@ -328,9 +366,8 @@ public class DatastoreTemplate implements DatastoreOperations {
 		Assert.notNull(map, "A non-null map is required.");
 
 		Builder builder = Entity.newBuilder(datastoreKey);
-		map.forEach(
-				(key, value) ->
-						builder.set(key, this.datastoreEntityConverter.getConversions().convertOnWriteSingle(value)));
+		map.forEach((key, value) -> builder.set(key, this.datastoreEntityConverter
+				.getConversions().convertOnWriteSingle(value)));
 		Entity entity = builder.build();
 		getDatastoreReadWriter().put(entity);
 	}
@@ -340,22 +377,8 @@ public class DatastoreTemplate implements DatastoreOperations {
 		return this.objectToKeyFactory.getKeyFromId(id, kind);
 	}
 
-	private static StructuredQuery.OrderBy createOrderBy(DatastorePersistentEntity<?> persistentEntity,
-			Sort.Order order) {
-		if (order.isIgnoreCase()) {
-			throw new DatastoreDataException("Datastore doesn't support sorting ignoring case");
-		}
-		if (!order.getNullHandling().equals(Sort.NullHandling.NATIVE)) {
-			throw new DatastoreDataException("Datastore supports only NullHandling.NATIVE null handling");
-		}
-		return new StructuredQuery.OrderBy(
-				persistentEntity.getPersistentProperty(order.getProperty()).getFieldName(),
-				(order.getDirection() == Sort.Direction.DESC)
-						? StructuredQuery.OrderBy.Direction.DESCENDING
-						: StructuredQuery.OrderBy.Direction.ASCENDING);
-	}
-
-	private Entity convertToEntityForSave(Object entity, Set<Key> persistedEntities, Key... ancestors) {
+	private Entity convertToEntityForSave(Object entity, Set<Key> persistedEntities,
+			Key... ancestors) {
 		if (ancestors != null) {
 			for (Key ancestor : ancestors) {
 				validateKey(entity, keyToPathElement(ancestor));
@@ -369,71 +392,76 @@ public class DatastoreTemplate implements DatastoreOperations {
 		return builder.build();
 	}
 
-	private void saveReferences(Object entity, Builder builder, Set<Key> persistedEntities) {
+	private void saveReferences(Object entity, Builder builder,
+			Set<Key> persistedEntities) {
 		DatastorePersistentEntity datastorePersistentEntity = this.datastoreMappingContext
 				.getPersistentEntity(entity.getClass());
-		datastorePersistentEntity.doWithAssociations((AssociationHandler) (association) -> {
-			PersistentProperty persistentProperty = association.getInverse();
-			PersistentPropertyAccessor accessor = datastorePersistentEntity.getPropertyAccessor(entity);
-			Object val = accessor.getProperty(persistentProperty);
-			if (val == null) {
-				return;
-			}
-			Value<?> value;
-			if (persistentProperty.isCollectionLike()) {
-				Iterable<?> iterableVal = (Iterable<?>) ValueUtil.toListIfArray(val);
-				saveAll(iterableVal, persistedEntities);
-				List<KeyValue> keyValues = StreamSupport.stream((iterableVal).spliterator(), false)
-						.map((o) -> KeyValue.of(this.getKey(o, false)))
-						.collect(Collectors.toList());
-				value = ListValue.of(keyValues);
-			}
-			else {
-				save(val, persistedEntities);
-				Key key = getKey(val, false);
-				value = KeyValue.of(key);
-			}
-			builder.set(((DatastorePersistentProperty) persistentProperty).getFieldName(), value);
-		});
+		datastorePersistentEntity
+				.doWithAssociations((AssociationHandler) (association) -> {
+					PersistentProperty persistentProperty = association.getInverse();
+					PersistentPropertyAccessor accessor = datastorePersistentEntity
+							.getPropertyAccessor(entity);
+					Object val = accessor.getProperty(persistentProperty);
+					if (val == null) {
+						return;
+					}
+					Value<?> value;
+					if (persistentProperty.isCollectionLike()) {
+						Iterable<?> iterableVal = (Iterable<?>) ValueUtil
+								.toListIfArray(val);
+						saveAll(iterableVal, persistedEntities);
+						List<KeyValue> keyValues = StreamSupport
+								.stream((iterableVal).spliterator(), false)
+								.map((o) -> KeyValue.of(this.getKey(o, false)))
+								.collect(Collectors.toList());
+						value = ListValue.of(keyValues);
+					}
+					else {
+						save(val, persistedEntities);
+						Key key = getKey(val, false);
+						value = KeyValue.of(key);
+					}
+					builder.set(((DatastorePersistentProperty) persistentProperty)
+							.getFieldName(), value);
+				});
 	}
 
 	private void saveDescendents(Object entity, Key key, Set<Key> persistedEntities) {
 		DatastorePersistentEntity datastorePersistentEntity = this.datastoreMappingContext
 				.getPersistentEntity(entity.getClass());
-		datastorePersistentEntity.doWithDescendantProperties(
-				(PersistentProperty persistentProperty) -> {
-					//Convert and write descendants, applying ancestor from parent entry
-					PersistentPropertyAccessor accessor = datastorePersistentEntity.getPropertyAccessor(entity);
+		datastorePersistentEntity
+				.doWithDescendantProperties((PersistentProperty persistentProperty) -> {
+					// Convert and write descendants, applying ancestor from parent entry
+					PersistentPropertyAccessor accessor = datastorePersistentEntity
+							.getPropertyAccessor(entity);
 					Object val = accessor.getProperty(persistentProperty);
 					if (val != null) {
-						//we can be sure that the property is an array or an iterable,
-						//because we check it in isDescendant
-						saveAll((Iterable<?>) ValueUtil.toListIfArray(val), persistedEntities, key);
+						// we can be sure that the property is an array or an iterable,
+						// because we check it in isDescendant
+						saveAll((Iterable<?>) ValueUtil.toListIfArray(val),
+								persistedEntities, key);
 					}
 				});
 	}
 
-	public static PathElement keyToPathElement(Key key) {
-		Assert.notNull(key, "A non-null key is required");
-		return (key.getName() != null)
-				? PathElement.of(key.getKind(), key.getName())
-				: PathElement.of(key.getKind(), key.getId());
-	}
-
 	private void validateKey(Object entity, PathElement ancestorPE) {
-		DatastorePersistentEntity datastorePersistentEntity =
-				this.datastoreMappingContext.getPersistentEntity(entity.getClass());
-		DatastorePersistentProperty idProp = datastorePersistentEntity.getIdPropertyOrFail();
+		DatastorePersistentEntity datastorePersistentEntity = this.datastoreMappingContext
+				.getPersistentEntity(entity.getClass());
+		DatastorePersistentProperty idProp = datastorePersistentEntity
+				.getIdPropertyOrFail();
 
 		if (!TypeUtils.isAssignable(BaseKey.class, idProp.getType())) {
-			throw new DatastoreDataException("Only Key types are allowed for descendants id");
+			throw new DatastoreDataException(
+					"Only Key types are allowed for descendants id");
 		}
 
 		Key key = getKey(entity, false);
-		if (key == null || key.getAncestors().stream().anyMatch((pe) -> pe.equals(ancestorPE))) {
+		if (key == null
+				|| key.getAncestors().stream().anyMatch((pe) -> pe.equals(ancestorPE))) {
 			return;
 		}
-		throw new DatastoreDataException("Descendant object has a key without current ancestor");
+		throw new DatastoreDataException(
+				"Descendant object has a key without current ancestor");
 	}
 
 	/**
@@ -443,12 +471,14 @@ public class DatastoreTemplate implements DatastoreOperations {
 	 * @param <T> the type the entities should be converted to.
 	 * @return a list of converted entities
 	 */
-	public <T> List<T> convertEntitiesForRead(Iterator<? extends BaseEntity> entities, Class<T> entityClass) {
+	public <T> List<T> convertEntitiesForRead(Iterator<? extends BaseEntity> entities,
+			Class<T> entityClass) {
 		ReadContext context = new ReadContext();
 		return convertEntitiesForRead(entities, entityClass, context);
 	}
 
-	private <T> List<T> convertEntitiesForRead(Iterator<? extends BaseEntity> entities, Class<T> entityClass, ReadContext context) {
+	private <T> List<T> convertEntitiesForRead(Iterator<? extends BaseEntity> entities,
+			Class<T> entityClass, ReadContext context) {
 		if (entities == null) {
 			return Collections.emptyList();
 		}
@@ -461,7 +491,8 @@ public class DatastoreTemplate implements DatastoreOperations {
 		return convertEntitiesForRead(keys, entityClass, context);
 	}
 
-	private <T> List<T> convertEntitiesForRead(Collection<? extends BaseKey> keys, Class<T> entityClass, ReadContext context) {
+	private <T> List<T> convertEntitiesForRead(Collection<? extends BaseKey> keys,
+			Class<T> entityClass, ReadContext context) {
 		if (keys == null) {
 			return Collections.emptyList();
 		}
@@ -471,15 +502,13 @@ public class DatastoreTemplate implements DatastoreOperations {
 
 		return keys.stream()
 				.map((key) -> convertEntityResolveDescendantsAndReferences(entityClass,
-				datastorePersistentEntity,
-				key,
-				context)).filter(Objects::nonNull)
-				.collect(Collectors.toList());
+						datastorePersistentEntity, key, context))
+				.filter(Objects::nonNull).collect(Collectors.toList());
 	}
 
 	private <T> T convertEntityResolveDescendantsAndReferences(Class<T> entityClass,
-			DatastorePersistentEntity datastorePersistentEntity,
-			BaseKey key, ReadContext context) {
+			DatastorePersistentEntity datastorePersistentEntity, BaseKey key,
+			ReadContext context) {
 		T convertedObject;
 		if (context.converted(key)) {
 			convertedObject = (T) context.getConvertedEntity(key);
@@ -488,28 +517,33 @@ public class DatastoreTemplate implements DatastoreOperations {
 			BaseEntity readEntity = context.getReadEntity(key);
 			convertedObject = this.datastoreEntityConverter.read(entityClass, readEntity);
 
-			// the parent entity should be put into context BEFORE referenced and descendant entities
+			// the parent entity should be put into context BEFORE referenced and
+			// descendant entities
 			// are being resolved to avoid infinite loops
 			context.putConvertedEntity(key, convertedObject);
 
-			//raw Datastore entity is no longer needed
+			// raw Datastore entity is no longer needed
 			context.removeReadEntity(key);
 			if (convertedObject != null) {
-				resolveDescendantProperties(datastorePersistentEntity, readEntity, convertedObject, context);
-				resolveReferenceProperties(datastorePersistentEntity, readEntity, convertedObject, context);
+				resolveDescendantProperties(datastorePersistentEntity, readEntity,
+						convertedObject, context);
+				resolveReferenceProperties(datastorePersistentEntity, readEntity,
+						convertedObject, context);
 			}
 		}
 
 		return convertedObject;
 	}
 
-	private <T> void resolveReferenceProperties(DatastorePersistentEntity datastorePersistentEntity,
-			BaseEntity entity, T convertedObject, ReadContext context) {
-		datastorePersistentEntity.doWithAssociations(
-				(AssociationHandler) (association) -> {
+	private <T> void resolveReferenceProperties(
+			DatastorePersistentEntity datastorePersistentEntity, BaseEntity entity,
+			T convertedObject, ReadContext context) {
+		datastorePersistentEntity
+				.doWithAssociations((AssociationHandler) (association) -> {
 					DatastorePersistentProperty referencePersistentProperty = (DatastorePersistentProperty) association
 							.getInverse();
-					Object referenced = findReferenced(entity, referencePersistentProperty, context);
+					Object referenced = findReferenced(entity,
+							referencePersistentProperty, context);
 					if (referenced != null) {
 						datastorePersistentEntity.getPropertyAccessor(convertedObject)
 								.setProperty(referencePersistentProperty, referenced);
@@ -518,7 +552,8 @@ public class DatastoreTemplate implements DatastoreOperations {
 				});
 	}
 
-	private Object findReferenced(BaseEntity entity, DatastorePersistentProperty referencePersistentProperty,
+	private Object findReferenced(BaseEntity entity,
+			DatastorePersistentProperty referencePersistentProperty,
 			ReadContext context) {
 		String fieldName = referencePersistentProperty.getFieldName();
 		try {
@@ -529,29 +564,28 @@ public class DatastoreTemplate implements DatastoreOperations {
 			else if (referencePersistentProperty.isCollectionLike()) {
 				Class referencedType = referencePersistentProperty.getComponentType();
 				List<Value<Key>> keyValues = entity.getList(fieldName);
-				referenced = this.datastoreEntityConverter.getConversions()
-						.convertOnRead(
-								findAllById(
-										keyValues.stream().map(Value::get).collect(Collectors.toList()),
-										referencedType, context),
-								referencePersistentProperty.getType(),
-								referencedType);
+				referenced = this.datastoreEntityConverter.getConversions().convertOnRead(
+						findAllById(keyValues.stream().map(Value::get)
+								.collect(Collectors.toList()), referencedType, context),
+						referencePersistentProperty.getType(), referencedType);
 			}
 			else {
-				referenced = findById(entity.getKey(fieldName), referencePersistentProperty.getType(), context);
+				referenced = findById(entity.getKey(fieldName),
+						referencePersistentProperty.getType(), context);
 			}
 			return referenced;
 		}
 		catch (ClassCastException ex) {
-				throw new DatastoreDataException(
-					"Error loading reference property " + fieldName + "."
-							+ "Reference properties must be stored as Keys or lists of Keys"
-							+ " in Cloud Datastore for singular or multiple references, respectively.");
-			}
+			throw new DatastoreDataException("Error loading reference property "
+					+ fieldName + "."
+					+ "Reference properties must be stored as Keys or lists of Keys"
+					+ " in Cloud Datastore for singular or multiple references, respectively.");
+		}
 	}
 
-	private <T> void resolveDescendantProperties(DatastorePersistentEntity datastorePersistentEntity,
-			BaseEntity entity, T convertedObject, ReadContext context) {
+	private <T> void resolveDescendantProperties(
+			DatastorePersistentEntity datastorePersistentEntity, BaseEntity entity,
+			T convertedObject, ReadContext context) {
 		datastorePersistentEntity
 				.doWithDescendantProperties((descendantPersistentProperty) -> {
 
@@ -565,15 +599,16 @@ public class DatastoreTemplate implements DatastoreOperations {
 							.build();
 
 					List entities = convertEntitiesForRead(
-							getDatastoreReadWriter().run(descendantQuery), descendantType, context);
+							getDatastoreReadWriter().run(descendantQuery), descendantType,
+							context);
 
 					datastorePersistentEntity.getPropertyAccessor(convertedObject)
 							.setProperty(descendantPersistentProperty,
 									// Converting the collection type.
 									this.datastoreEntityConverter.getConversions()
-											.convertOnRead(
-													entities,
-													descendantPersistentProperty.getType(),
+											.convertOnRead(entities,
+													descendantPersistentProperty
+															.getType(),
 													descendantType));
 				});
 	}
@@ -588,19 +623,20 @@ public class DatastoreTemplate implements DatastoreOperations {
 				.getPersistentEntity(entity.getClass());
 		DatastorePersistentProperty idProp = datastorePersistentEntity
 				.getIdPropertyOrFail();
-		if (datastorePersistentEntity.getPropertyAccessor(entity).getProperty(idProp) == null && allocateKey) {
-			return this.objectToKeyFactory.allocateKeyForObject(entity, datastorePersistentEntity, ancestors);
+		if (datastorePersistentEntity.getPropertyAccessor(entity)
+				.getProperty(idProp) == null && allocateKey) {
+			return this.objectToKeyFactory.allocateKeyForObject(entity,
+					datastorePersistentEntity, ancestors);
 		}
-		return this.objectToKeyFactory.getKeyFromObject(entity, datastorePersistentEntity);
+		return this.objectToKeyFactory.getKeyFromObject(entity,
+				datastorePersistentEntity);
 	}
 
 	private Key[] findAllKeys(Class entityClass) {
 		Iterable<Key> keysFound = queryKeys(Query.newKeyQueryBuilder().setKind(
-				this.datastoreMappingContext
-						.getPersistentEntity(entityClass).kindName())
+				this.datastoreMappingContext.getPersistentEntity(entityClass).kindName())
 				.build());
-		return StreamSupport.stream(keysFound.spliterator(),
-				false).toArray(Key[]::new);
+		return StreamSupport.stream(keysFound.spliterator(), false).toArray(Key[]::new);
 	}
 
 	private <T> List<Key> getKeysFromIds(Iterable<?> ids, Class<T> entityClass) {
@@ -616,7 +652,8 @@ public class DatastoreTemplate implements DatastoreOperations {
 				: this.datastore;
 	}
 
-	private <T> StructuredQuery exampleToQuery(Example<T> example, DatastoreQueryOptions queryOptions, boolean keyQuery) {
+	private <T> StructuredQuery exampleToQuery(Example<T> example,
+			DatastoreQueryOptions queryOptions, boolean keyQuery) {
 		validateExample(example);
 
 		T probe = example.getProbe();
@@ -624,32 +661,33 @@ public class DatastoreTemplate implements DatastoreOperations {
 		this.datastoreEntityConverter.write(probe, probeEntityBuilder);
 
 		FullEntity<IncompleteKey> probeEntity = probeEntityBuilder.build();
-		DatastorePersistentEntity<?> persistentEntity =
-				this.datastoreMappingContext.getPersistentEntity(example.getProbeType());
+		DatastorePersistentEntity<?> persistentEntity = this.datastoreMappingContext
+				.getPersistentEntity(example.getProbeType());
 
-		StructuredQuery.Builder builder = keyQuery ? Query.newKeyQueryBuilder() : Query.newEntityQueryBuilder();
+		StructuredQuery.Builder builder = keyQuery ? Query.newKeyQueryBuilder()
+				: Query.newEntityQueryBuilder();
 		builder.setKind(persistentEntity.kindName());
 
-		ExampleMatcherAccessor matcherAccessor = new ExampleMatcherAccessor(example.getMatcher());
+		ExampleMatcherAccessor matcherAccessor = new ExampleMatcherAccessor(
+				example.getMatcher());
 		matcherAccessor.getPropertySpecifiers();
 		LinkedList<StructuredQuery.Filter> filters = new LinkedList<>();
 		persistentEntity.doWithColumnBackedProperties((persistentProperty) -> {
 			if (!example.getMatcher().isIgnoredPath(persistentProperty.getName())) {
 				String fieldName = persistentProperty.getFieldName();
 				Value<?> value = probeEntity.getValue(fieldName);
-				if (value instanceof NullValue
-						&& example.getMatcher().getNullHandler() != ExampleMatcher.NullHandler.INCLUDE) {
-					//skip null value
+				if (value instanceof NullValue && example.getMatcher()
+						.getNullHandler() != ExampleMatcher.NullHandler.INCLUDE) {
+					// skip null value
 					return;
 				}
 				filters.add(StructuredQuery.PropertyFilter.eq(fieldName, value));
 			}
 		});
 
-
 		if (!filters.isEmpty()) {
-			builder.setFilter(
-					StructuredQuery.CompositeFilter.and(filters.pop(), filters.toArray(new StructuredQuery.Filter[0])));
+			builder.setFilter(StructuredQuery.CompositeFilter.and(filters.pop(),
+					filters.toArray(new StructuredQuery.Filter[0])));
 		}
 
 		applyQueryOptions(builder, queryOptions, persistentEntity);
@@ -661,20 +699,24 @@ public class DatastoreTemplate implements DatastoreOperations {
 
 		ExampleMatcher matcher = example.getMatcher();
 		if (!matcher.isAllMatching()) {
-			throw new DatastoreDataException("Unsupported MatchMode. Only MatchMode.ALL is supported");
+			throw new DatastoreDataException(
+					"Unsupported MatchMode. Only MatchMode.ALL is supported");
 		}
 		if (matcher.isIgnoreCaseEnabled()) {
 			throw new DatastoreDataException("Ignore case matching is not supported");
 		}
 		if (!(matcher.getDefaultStringMatcher() == ExampleMatcher.StringMatcher.EXACT
-				|| matcher.getDefaultStringMatcher() == ExampleMatcher.StringMatcher.DEFAULT)) {
-			throw new DatastoreDataException("Unsupported StringMatcher. Only EXACT and DEFAULT are supported");
+				|| matcher
+						.getDefaultStringMatcher() == ExampleMatcher.StringMatcher.DEFAULT)) {
+			throw new DatastoreDataException(
+					"Unsupported StringMatcher. Only EXACT and DEFAULT are supported");
 		}
 
-		Optional<String> path =
-				example.getMatcher().getIgnoredPaths().stream().filter((s) -> s.contains(".")).findFirst();
+		Optional<String> path = example.getMatcher().getIgnoredPaths().stream()
+				.filter((s) -> s.contains(".")).findFirst();
 		if (path.isPresent()) {
-			throw new DatastoreDataException("Ignored paths deeper than 1 are not supported");
+			throw new DatastoreDataException(
+					"Ignored paths deeper than 1 are not supported");
 		}
 		if (matcher.getPropertySpecifiers().hasValues()) {
 			throw new DatastoreDataException("Property matchers are not supported");
@@ -687,7 +729,9 @@ public class DatastoreTemplate implements DatastoreOperations {
 	 * @author Dmitry Solomakha
 	 */
 	class ReadContext {
+
 		private final Map<BaseKey, Object> convertedEntities = new HashMap<>();
+
 		private final Map<BaseKey, BaseEntity> readEntities = new HashMap<>();
 
 		void putConvertedEntity(BaseKey key, Object entity) {
@@ -718,5 +762,7 @@ public class DatastoreTemplate implements DatastoreOperations {
 		void removeReadEntity(BaseKey key) {
 			this.readEntities.remove(key);
 		}
+
 	}
+
 }
