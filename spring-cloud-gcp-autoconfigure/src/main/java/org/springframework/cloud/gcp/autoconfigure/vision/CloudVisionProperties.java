@@ -38,4 +38,8 @@ public class CloudVisionProperties implements CredentialsSupplier {
 	public Credentials getCredentials() {
 		return this.credentials;
 	}
+
+	public static void main(String[] args) {
+
+	}
 }
